@@ -27,6 +27,11 @@ export async function POST(request: Request) {
   }
 
   try {
+    console.log("[api/admin/resources/upload-url] Estado das envs.", {
+      hasSupabaseUrl: Boolean(process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL),
+      hasServiceRoleKey: Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SECRET_KEY),
+    });
+
     const body = await request.json();
     const parsed = resourceUploadRequestSchema.safeParse(body);
 
@@ -79,10 +84,12 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("[api/admin/resources/upload-url] Erro inesperado.", error);
 
+    const message = error instanceof Error ? error.message : "Ocorreu um erro ao preparar o upload.";
+
     return NextResponse.json(
       {
         success: false,
-        error: "Ocorreu um erro ao preparar o upload.",
+        error: message,
       },
       { status: 500 },
     );

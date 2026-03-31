@@ -83,10 +83,12 @@ export async function POST(request: Request) {
       });
     }
 
+    const message = error instanceof Error ? error.message : "Ocorreu um erro ao criar o recurso.";
+
     return NextResponse.json(
       {
         success: false,
-        error: "Ocorreu um erro ao criar o recurso.",
+        error: message,
       },
       { status: 500 },
     );
