@@ -1,46 +1,18 @@
-import { createClient } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { slugifyFileName } from "@/lib/utils";
-import { resourceSchema } from "@/lib/validators";
+import {
+  buildResourcePublicUrl,
+  createSupabaseAdminClient,
+  createUniqueResourceFilePath,
+  MAX_RESOURCE_SIZE_BYTES,
+  removeResourceFromStorage,
+  RESOURCE_BUCKET,
+} from "@/lib/resource-storage";
+import { resourceCreateSchema, resourceSchema } from "@/lib/validators";
 
 export const runtime = "nodejs";
-
-const RESOURCE_BUCKET = "resources";
-const MAX_PRISMA_INT = 2_147_483_647;
-
-function createSupabaseAdminClient() {
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SECRET_KEY;
-
-  if (!supabaseUrl || !serviceRoleKey) {
-    throw new Error("As variáveis SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY são obrigatórias.");
-  }
-
-  return createClient(supabaseUrl, serviceRoleKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  });
-}
-
-function buildResourcePublicUrl(filePath: string) {
-  const supabaseUrl = process.env.SUPABASE_URL?.replace(/\/+$/, "");
-
-  if (!supabaseUrl) {
-    return null;
-  }
-
-  const encodedPath = filePath
-    .split("/")
-    .map((segment) => encodeURIComponent(segment))
-    .join("/");
-
-  return `${supabaseUrl}/storage/v1/object/public/${RESOURCE_BUCKET}/${encodedPath}`;
-}
 
 export async function POST(request: Request) {
   console.log("[api/resources] Pedido de upload recebido.");
@@ -62,6 +34,63 @@ export async function POST(request: Request) {
   let uploadedFilePath: string | null = null;
 
   try {
+    const contentType = request.headers.get("content-type") ?? "";
+
+    if (contentType.includes("application/json")) {
+      const body = await request.json();
+      const parsed = resourceCreateSchema.safeParse(body);
+
+      if (!parsed.success) {
+        console.error("[api/resources] Validação JSON falhou.", parsed.error.flatten().fieldErrors);
+
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Dados inválidos.",
+            details: parsed.error.flatten().fieldErrors,
+          },
+          { status: 400 },
+        );
+      }
+
+      const resource = await prisma.resource.create({
+        data: {
+          title: parsed.data.title,
+          description: parsed.data.description,
+          category: parsed.data.category,
+          fileName: parsed.data.fileName,
+          filePath: parsed.data.filePath,
+          mimeType: parsed.data.mimeType,
+          sizeBytes: parsed.data.sizeBytes,
+          isPublished: parsed.data.isPublished,
+        },
+      });
+
+      console.log("[api/resources] Registo criado via JSON.", {
+        resourceId: resource.id,
+        filePath: resource.filePath,
+      });
+
+      revalidatePath("/");
+      revalidatePath("/fichas");
+      revalidatePath("/admin");
+      revalidatePath("/admin/fichas");
+
+      return NextResponse.json(
+        {
+          success: true,
+          message: "Recurso criado com sucesso.",
+          resource,
+          storage: {
+            bucket: RESOURCE_BUCKET,
+            path: resource.filePath,
+            publicUrl: buildResourcePublicUrl(resource.filePath),
+          },
+        },
+        { status: 201 },
+      );
+    }
+
     const formData = await request.formData();
     const parsed = resourceSchema.safeParse({
       title: formData.get("title"),
@@ -95,7 +124,7 @@ export async function POST(request: Request) {
       );
     }
 
-    if (file.size > MAX_PRISMA_INT) {
+    if (file.size > MAX_RESOURCE_SIZE_BYTES) {
       console.error("[api/resources] Ficheiro demasiado grande para o campo sizeBytes.", {
         sizeBytes: file.size,
       });
@@ -109,8 +138,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const safeFileName = slugifyFileName(file.name) || "ficheiro";
-    const uniqueFileName = `${Date.now()}-${safeFileName}`;
+    const uniqueFileName = createUniqueResourceFilePath(file.name);
     const mimeType = file.type || "application/octet-stream";
     const fileBuffer = Buffer.from(await file.arrayBuffer());
     const supabase = createSupabaseAdminClient();
@@ -188,17 +216,15 @@ export async function POST(request: Request) {
     console.error("[api/resources] Erro inesperado durante o upload.", error);
 
     if (uploadedFilePath) {
-      try {
-        const supabase = createSupabaseAdminClient();
-
-        await supabase.storage.from(RESOURCE_BUCKET).remove([uploadedFilePath]);
-
-        console.warn("[api/resources] Upload removido do storage após falha na base de dados.", {
-          path: uploadedFilePath,
+      await removeResourceFromStorage(uploadedFilePath)
+        .then(() => {
+          console.warn("[api/resources] Upload removido do storage após falha na base de dados.", {
+            path: uploadedFilePath,
+          });
+        })
+        .catch((rollbackError) => {
+          console.error("[api/resources] Falha ao limpar o ficheiro do storage.", rollbackError);
         });
-      } catch (rollbackError) {
-        console.error("[api/resources] Falha ao limpar o ficheiro do storage.", rollbackError);
-      }
     }
 
     return NextResponse.json(
