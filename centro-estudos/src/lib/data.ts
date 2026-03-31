@@ -25,8 +25,10 @@ function normalizeDatabaseMessage(error: unknown) {
   return "A ligacao ao PostgreSQL falhou. Verifica DATABASE_URL, credenciais e permissões.";
 }
 
-const resourceBucketPublicBaseUrl = process.env.SUPABASE_URL
-  ? `${process.env.SUPABASE_URL.replace(/\/+$/, "")}/storage/v1/object/public/resources`
+const supabaseUrl = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
+
+const resourceBucketPublicBaseUrl = supabaseUrl
+  ? `${supabaseUrl.replace(/\/+$/, "")}/storage/v1/object/public/resources`
   : null;
 
 function toResourceFileUrl(filePath: string) {

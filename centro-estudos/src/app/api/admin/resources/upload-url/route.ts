@@ -72,7 +72,7 @@ export async function POST(request: Request) {
         path: filePath,
         token: data.token,
         signedUrl: data.signedUrl,
-        supabaseUrl: process.env.SUPABASE_URL,
+        supabaseUrl: process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL,
       },
       { status: 200 },
     );

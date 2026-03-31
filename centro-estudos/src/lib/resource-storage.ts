@@ -7,11 +7,16 @@ export const RESOURCE_BUCKET = "resources";
 export const MAX_RESOURCE_SIZE_BYTES = 2_147_483_647;
 
 export function createSupabaseAdminClient() {
-  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseUrl = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SECRET_KEY;
 
   if (!supabaseUrl || !serviceRoleKey) {
-    throw new Error("As variáveis SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY são obrigatórias.");
+    const missingVariables = [
+      !supabaseUrl ? "SUPABASE_URL ou NEXT_PUBLIC_SUPABASE_URL" : null,
+      !serviceRoleKey ? "SUPABASE_SERVICE_ROLE_KEY ou SUPABASE_SECRET_KEY" : null,
+    ].filter(Boolean);
+
+    throw new Error(`Faltam variáveis de ambiente: ${missingVariables.join(", ")}.`);
   }
 
   return createClient(supabaseUrl, serviceRoleKey, {
@@ -28,7 +33,7 @@ export function createUniqueResourceFilePath(fileName: string) {
 }
 
 export function buildResourcePublicUrl(filePath: string) {
-  const supabaseUrl = process.env.SUPABASE_URL?.replace(/\/+$/, "");
+  const supabaseUrl = (process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL)?.replace(/\/+$/, "");
 
   if (!supabaseUrl) {
     return null;
