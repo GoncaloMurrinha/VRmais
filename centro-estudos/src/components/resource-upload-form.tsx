@@ -20,6 +20,24 @@ type CreateResourceResponse = {
   error?: string;
 };
 
+async function readResponseError(response: Response) {
+  const contentType = response.headers.get("content-type") ?? "";
+
+  if (contentType.includes("application/json")) {
+    const payload = (await response.json()) as { error?: string };
+    return payload.error || `Pedido falhou com estado ${response.status}.`;
+  }
+
+  const text = await response.text();
+  const normalizedText = text.replace(/\s+/g, " ").trim();
+
+  if (!normalizedText) {
+    return `Pedido falhou com estado ${response.status}.`;
+  }
+
+  return normalizedText.slice(0, 180);
+}
+
 export function ResourceUploadForm() {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
@@ -52,6 +70,7 @@ export function ResourceUploadForm() {
     try {
       const uploadUrlResponse = await fetch("/api/admin/resources/upload-url", {
         method: "POST",
+        credentials: "same-origin",
         headers: {
           "Content-Type": "application/json",
         },
@@ -61,9 +80,13 @@ export function ResourceUploadForm() {
         }),
       });
 
+      if (!uploadUrlResponse.ok) {
+        throw new Error(await readResponseError(uploadUrlResponse));
+      }
+
       const uploadConfig = (await uploadUrlResponse.json()) as UploadUrlResponse;
 
-      if (!uploadUrlResponse.ok || !uploadConfig.success || !uploadConfig.path || !uploadConfig.token || !uploadConfig.supabaseUrl) {
+      if (!uploadConfig.success || !uploadConfig.path || !uploadConfig.token || !uploadConfig.supabaseUrl) {
         throw new Error(uploadConfig.error || "Não foi possível preparar o upload.");
       }
 
@@ -86,6 +109,7 @@ export function ResourceUploadForm() {
 
       const createResourceResponse = await fetch("/api/admin/resources", {
         method: "POST",
+        credentials: "same-origin",
         headers: {
           "Content-Type": "application/json",
         },
@@ -101,9 +125,13 @@ export function ResourceUploadForm() {
         }),
       });
 
+      if (!createResourceResponse.ok) {
+        throw new Error(await readResponseError(createResourceResponse));
+      }
+
       const createResourceResult = (await createResourceResponse.json()) as CreateResourceResponse;
 
-      if (!createResourceResponse.ok || !createResourceResult.success) {
+      if (!createResourceResult.success) {
         throw new Error(createResourceResult.error || "Não foi possível guardar a ficha na base de dados.");
       }
 
@@ -111,6 +139,7 @@ export function ResourceUploadForm() {
       window.location.assign("/admin/fichas");
     } catch (submitError) {
       const message = submitError instanceof Error ? submitError.message : "O upload falhou.";
+      console.error("[resource-upload-form] Upload falhou.", submitError);
       setError(message);
     } finally {
       setPending(false);
