@@ -1,3 +1,4 @@
+import type { Resource } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { mockAboutPhotos, mockResources, mockSessions } from "@/lib/mock-data";
 
@@ -22,6 +23,30 @@ function normalizeDatabaseMessage(error: unknown) {
   }
 
   return "A ligacao ao PostgreSQL falhou. Verifica DATABASE_URL, credenciais e permissões.";
+}
+
+const resourceBucketPublicBaseUrl = process.env.SUPABASE_URL
+  ? `${process.env.SUPABASE_URL.replace(/\/+$/, "")}/storage/v1/object/public/resources`
+  : null;
+
+function toResourceFileUrl(filePath: string) {
+  if (!resourceBucketPublicBaseUrl || filePath === "#" || filePath.startsWith("/") || /^https?:\/\//.test(filePath)) {
+    return filePath;
+  }
+
+  const encodedPath = filePath
+    .split("/")
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
+
+  return `${resourceBucketPublicBaseUrl}/${encodedPath}`;
+}
+
+function withResourceFileUrls(resources: Resource[]) {
+  return resources.map((resource) => ({
+    ...resource,
+    filePath: toResourceFileUrl(resource.filePath),
+  }));
 }
 
 async function withDatabaseFallback<T>(query: () => Promise<T>, fallback: T) {
@@ -58,7 +83,7 @@ export async function getPublishedSessions() {
 }
 
 export async function getPublishedResources() {
-  return withDatabaseFallback(
+  const result = await withDatabaseFallback(
     () =>
       prisma.resource.findMany({
         where: { isPublished: true },
@@ -66,6 +91,11 @@ export async function getPublishedResources() {
       }),
     mockResources,
   );
+
+  return {
+    data: withResourceFileUrls(result.data),
+    database: result.database,
+  };
 }
 
 export async function getPublishedAboutPhotos() {
@@ -88,7 +118,7 @@ export async function getAdminDashboardData() {
 
     return {
       sessions,
-      resources,
+      resources: withResourceFileUrls(resources),
       database: {
         available: true,
       } satisfies DatabaseState,
@@ -98,7 +128,7 @@ export async function getAdminDashboardData() {
 
     return {
       sessions: mockSessions,
-      resources: mockResources,
+      resources: withResourceFileUrls(mockResources),
       database: {
         available: false,
         message,
@@ -132,7 +162,7 @@ export async function getAdminResourcesData() {
   );
 
   return {
-    resources: result.data,
+    resources: withResourceFileUrls(result.data),
     database: result.database,
   };
 }
