@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Centro de Estudos Horizonte",
+  title: "VR+ Centro de Estudos",
   description:
     "Site institucional com calendário de sessões, fichas de apoio e área de administração para gestão pedagógica.",
 };

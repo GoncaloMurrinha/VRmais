@@ -12,7 +12,7 @@ export default async function AdminResourcesPage() {
   return (
     <div className="space-y-8">
       <section>
-        <p className="text-sm font-semibold uppercase tracking-[0.3em] text-emerald-700">Fichas</p>
+        <p className="brand-accent text-sm font-semibold uppercase tracking-[0.3em]">Fichas</p>
         <h1 className="mt-2 text-3xl font-semibold tracking-[-0.04em] text-slate-950">Upload e gestão de ficheiros</h1>
         <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600">
           Carrega materiais pedagógicos e publica-os diretamente na biblioteca pública.
@@ -32,7 +32,7 @@ export default async function AdminResourcesPage() {
                   <h2 className="text-2xl font-semibold text-slate-950">{resource.title}</h2>
                   <span
                     className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                      resource.isPublished ? "bg-emerald-100 text-emerald-800" : "bg-slate-200 text-slate-700"
+                      resource.isPublished ? "brand-badge" : "bg-slate-200 text-slate-700"
                     }`}
                   >
                     {resource.isPublished ? "Publicado" : "Rascunho"}
@@ -44,7 +44,7 @@ export default async function AdminResourcesPage() {
                 </p>
               </div>
               <div className="flex items-center gap-5">
-                <a href={resource.filePath} target="_blank" rel="noreferrer" className="text-sm font-semibold text-cyan-700">
+                <a href={resource.filePath} target="_blank" rel="noreferrer" className="brand-accent text-sm font-semibold">
                   Abrir
                 </a>
                 {database.available ? <ResourceDeleteForm id={resource.id} /> : null}

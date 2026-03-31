@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { mockResources, mockSessions } from "@/lib/mock-data";
+import { mockAboutPhotos, mockResources, mockSessions } from "@/lib/mock-data";
 
 export type DatabaseState = {
   available: boolean;
@@ -68,6 +68,17 @@ export async function getPublishedResources() {
   );
 }
 
+export async function getPublishedAboutPhotos() {
+  return withDatabaseFallback(
+    () =>
+      prisma.aboutPhoto.findMany({
+        where: { isPublished: true },
+        orderBy: { createdAt: "desc" },
+      }),
+    mockAboutPhotos,
+  );
+}
+
 export async function getAdminDashboardData() {
   try {
     const [sessions, resources] = await Promise.all([
@@ -122,6 +133,21 @@ export async function getAdminResourcesData() {
 
   return {
     resources: result.data,
+    database: result.database,
+  };
+}
+
+export async function getAdminAboutPhotosData() {
+  const result = await withDatabaseFallback(
+    () =>
+      prisma.aboutPhoto.findMany({
+        orderBy: { createdAt: "desc" },
+      }),
+    mockAboutPhotos,
+  );
+
+  return {
+    photos: result.data,
     database: result.database,
   };
 }

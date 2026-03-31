@@ -18,7 +18,7 @@ export function SessionAdminForm({ session }: { session?: Session }) {
           name="title"
           defaultValue={session?.title}
           required
-          className="w-full rounded-2xl border border-slate-300 px-4 py-3"
+          className="brand-input w-full rounded-2xl px-4 py-3"
         />
       </div>
       <div className="md:col-span-2">
@@ -34,7 +34,7 @@ export function SessionAdminForm({ session }: { session?: Session }) {
           defaultValue={session?.description}
           required
           rows={4}
-          className="w-full rounded-2xl border border-slate-300 px-4 py-3"
+          className="brand-input w-full rounded-2xl px-4 py-3"
         />
       </div>
       <div>
@@ -46,7 +46,7 @@ export function SessionAdminForm({ session }: { session?: Session }) {
           name="category"
           defaultValue={session?.category}
           required
-          className="w-full rounded-2xl border border-slate-300 px-4 py-3"
+          className="brand-input w-full rounded-2xl px-4 py-3"
         />
       </div>
       <div>
@@ -58,7 +58,7 @@ export function SessionAdminForm({ session }: { session?: Session }) {
           name="tutorName"
           defaultValue={session?.tutorName}
           required
-          className="w-full rounded-2xl border border-slate-300 px-4 py-3"
+          className="brand-input w-full rounded-2xl px-4 py-3"
         />
       </div>
       <div>
@@ -70,24 +70,10 @@ export function SessionAdminForm({ session }: { session?: Session }) {
           name="location"
           defaultValue={session?.location}
           required
-          className="w-full rounded-2xl border border-slate-300 px-4 py-3"
+          className="brand-input w-full rounded-2xl px-4 py-3"
         />
       </div>
-      <div>
-        <label htmlFor={`capacity-${session?.id ?? "new"}`} className="mb-2 block text-sm font-medium text-slate-700">
-          Capacidade
-        </label>
-        <input
-          id={`capacity-${session?.id ?? "new"}`}
-          name="capacity"
-          type="number"
-          min="1"
-          max="99"
-          defaultValue={session?.capacity ?? 10}
-          required
-          className="w-full rounded-2xl border border-slate-300 px-4 py-3"
-        />
-      </div>
+      <input type="hidden" name="capacity" value={session?.capacity ?? 10} />
       <div>
         <label htmlFor={`start-${session?.id ?? "new"}`} className="mb-2 block text-sm font-medium text-slate-700">
           Início
@@ -98,7 +84,7 @@ export function SessionAdminForm({ session }: { session?: Session }) {
           type="datetime-local"
           defaultValue={session ? toDateTimeLocalValue(session.startAt) : ""}
           required
-          className="w-full rounded-2xl border border-slate-300 px-4 py-3"
+          className="brand-input w-full rounded-2xl px-4 py-3"
         />
       </div>
       <div>
@@ -111,7 +97,7 @@ export function SessionAdminForm({ session }: { session?: Session }) {
           type="datetime-local"
           defaultValue={session ? toDateTimeLocalValue(session.endAt) : ""}
           required
-          className="w-full rounded-2xl border border-slate-300 px-4 py-3"
+          className="brand-input w-full rounded-2xl px-4 py-3"
         />
       </div>
       <label className="flex items-center gap-3 text-sm font-medium text-slate-700">
@@ -126,7 +112,7 @@ export function SessionAdminForm({ session }: { session?: Session }) {
       <div className="flex items-center md:justify-end">
         <button
           type="submit"
-          className="w-full rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 md:w-auto"
+          className="brand-button-secondary w-full px-5 py-3 text-sm font-semibold md:w-auto"
         >
           {session ? "Guardar alterações" : "Criar sessão"}
         </button>

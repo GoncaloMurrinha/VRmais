@@ -18,7 +18,7 @@ export default async function CalendarPage() {
           eyebrow="Calendário"
           title="Sessões, apoios e oficinas disponíveis."
           description="Esta agenda pública mostra as sessões publicadas na área de gestão. Serve como base para evoluir para marcação ou integração com disponibilidade real."
-          accentClassName="text-cyan-300/80"
+          accentClassName="brand-accent-orange"
         />
         <section className="mx-auto w-full max-w-6xl px-6 pb-16">
           {!database.available ? (

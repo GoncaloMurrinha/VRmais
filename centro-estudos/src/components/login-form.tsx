@@ -21,7 +21,7 @@ export function LoginForm() {
           name="email"
           type="email"
           required
-          className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none ring-0 transition focus:border-cyan-600"
+          className="brand-input w-full rounded-2xl px-4 py-3 text-slate-950 ring-0"
           placeholder="admin@centroestudos.pt"
         />
       </div>
@@ -34,7 +34,7 @@ export function LoginForm() {
           name="password"
           type="password"
           required
-          className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none ring-0 transition focus:border-cyan-600"
+          className="brand-input w-full rounded-2xl px-4 py-3 text-slate-950 ring-0"
           placeholder="Introduz a palavra-passe"
         />
       </div>
@@ -42,7 +42,7 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-70"
+        className="brand-button-secondary w-full px-5 py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-70"
       >
         {pending ? "A entrar..." : "Entrar"}
       </button>

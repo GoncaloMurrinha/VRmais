@@ -5,9 +5,7 @@ export function ResourceCard({ resource }: { resource: Resource }) {
   return (
     <article className="content-surface flex h-full flex-col justify-between p-6">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-emerald-700">
-          {resource.category}
-        </p>
+        <p className="brand-accent text-xs font-semibold uppercase tracking-[0.25em]">{resource.category}</p>
         <h3 className="mt-2 text-xl font-semibold text-slate-950">{resource.title}</h3>
         <p className="mt-4 text-sm leading-7 text-slate-600">{resource.description}</p>
       </div>
@@ -17,7 +15,7 @@ export function ResourceCard({ resource }: { resource: Resource }) {
           href={resource.filePath}
           target="_blank"
           rel="noreferrer"
-          className="inline-flex items-center justify-center rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+          className="brand-button-secondary inline-flex items-center justify-center px-4 py-2 text-sm font-semibold"
         >
           Descarregar
         </a>

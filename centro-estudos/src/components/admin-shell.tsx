@@ -4,6 +4,7 @@ import { logoutAdmin } from "@/lib/admin-actions";
 const links = [
   { href: "/admin", label: "Dashboard" },
   { href: "/admin/sessoes", label: "Sessões" },
+  { href: "/admin/quem-somos", label: "Quem Somos" },
   { href: "/admin/fichas", label: "Fichas" },
 ];
 
@@ -16,9 +17,9 @@ export function AdminShell({
 }) {
   return (
     <div className="min-h-screen bg-slate-100">
-      <aside className="fixed inset-y-0 left-0 hidden w-72 border-r border-slate-200 bg-slate-950 px-6 py-8 text-white lg:block">
-        <p className="text-xs uppercase tracking-[0.3em] text-cyan-300/70">Admin</p>
-        <h1 className="mt-2 text-2xl font-semibold">Centro Horizonte</h1>
+      <aside className="fixed inset-y-0 left-0 hidden w-72 border-r border-slate-200 bg-[linear-gradient(180deg,#0f172a,#103e49)] px-6 py-8 text-white lg:block">
+        <p className="brand-accent-orange text-xs uppercase tracking-[0.3em]">Admin</p>
+        <h1 className="mt-2 text-2xl font-semibold">VR+ Centro de Estudos</h1>
         <nav className="mt-10 space-y-2">
           {links.map((link) => (
             <Link

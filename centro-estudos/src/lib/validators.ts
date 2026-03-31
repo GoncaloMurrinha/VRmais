@@ -32,3 +32,8 @@ export const resourceSchema = z.object({
   category: z.string().min(2),
   isPublished: z.string().optional(),
 });
+
+export const aboutPhotoSchema = z.object({
+  title: z.string().min(2),
+  isPublished: z.string().optional(),
+});

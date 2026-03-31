@@ -14,7 +14,7 @@ export function ResourceUploadForm() {
           id="resource-title"
           name="title"
           required
-          className="w-full rounded-2xl border border-slate-300 px-4 py-3"
+          className="brand-input w-full rounded-2xl px-4 py-3"
         />
       </div>
       <div className="md:col-span-2">
@@ -26,7 +26,7 @@ export function ResourceUploadForm() {
           name="description"
           rows={4}
           required
-          className="w-full rounded-2xl border border-slate-300 px-4 py-3"
+          className="brand-input w-full rounded-2xl px-4 py-3"
         />
       </div>
       <div>
@@ -37,7 +37,7 @@ export function ResourceUploadForm() {
           id="resource-category"
           name="category"
           required
-          className="w-full rounded-2xl border border-slate-300 px-4 py-3"
+          className="brand-input w-full rounded-2xl px-4 py-3"
         />
       </div>
       <div>
@@ -49,7 +49,7 @@ export function ResourceUploadForm() {
           name="file"
           type="file"
           required
-          className="w-full rounded-2xl border border-slate-300 px-4 py-3"
+          className="brand-input w-full rounded-2xl px-4 py-3"
         />
       </div>
       <label className="flex items-center gap-3 text-sm font-medium text-slate-700">
@@ -59,7 +59,7 @@ export function ResourceUploadForm() {
       <div className="flex items-center md:justify-end">
         <button
           type="submit"
-          className="w-full rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 md:w-auto"
+          className="brand-button-secondary w-full px-5 py-3 text-sm font-semibold md:w-auto"
         >
           Carregar ficha
         </button>

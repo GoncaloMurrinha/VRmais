@@ -20,10 +20,10 @@ export default async function AdminLoginPage() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top_left,#0f172a,#020617_55%)] px-6 py-12">
       <div className="grid w-full max-w-5xl overflow-hidden rounded-[2.5rem] border border-white/10 bg-white shadow-[0_30px_100px_-35px_rgba(8,15,30,0.8)] lg:grid-cols-[1.1fr_0.9fr]">
-        <section className="hidden bg-[linear-gradient(135deg,#082f49,#0f766e,#164e63)] p-12 text-white lg:block">
-          <p className="text-sm font-semibold uppercase tracking-[0.35em] text-cyan-100/80">Admin</p>
+        <section className="brand-panel hidden p-12 text-white lg:block">
+          <p className="brand-accent-orange text-sm font-semibold uppercase tracking-[0.35em]">Admin</p>
           <h1 className="mt-6 text-5xl font-semibold tracking-[-0.05em]">Gestão central do centro de estudos.</h1>
-          <p className="mt-6 max-w-md text-base leading-8 text-cyan-50/80">
+          <p className="mt-6 max-w-md text-base leading-8 text-white/80">
             Acesso à dashboard, gestão do calendário de sessões e carregamento de fichas para o site público.
           </p>
         </section>

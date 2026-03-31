@@ -13,8 +13,8 @@ export default async function AdminDashboardPage() {
     <div className="space-y-8">
       {!database.available ? <DatabaseWarning message={database.message} /> : null}
       <section className="grid gap-4 md:grid-cols-3">
-        <article className="rounded-[2rem] bg-slate-950 p-6 text-white">
-          <p className="text-sm text-slate-300">Sessões totais</p>
+        <article className="brand-panel rounded-[2rem] p-6 text-white">
+          <p className="text-sm text-white/72">Sessões totais</p>
           <p className="mt-4 text-4xl font-semibold">{sessions.length}</p>
         </article>
         <article className="rounded-[2rem] bg-white p-6 shadow-sm">
@@ -31,10 +31,10 @@ export default async function AdminDashboardPage() {
         <article className="rounded-[2rem] bg-white p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.3em] text-cyan-700">Sessões</p>
+              <p className="brand-accent text-sm font-semibold uppercase tracking-[0.3em]">Sessões</p>
               <h2 className="mt-2 text-2xl font-semibold text-slate-950">Próximas entradas</h2>
             </div>
-            <Link href="/admin/sessoes" className="text-sm font-semibold text-cyan-700">
+            <Link href="/admin/sessoes" className="brand-accent text-sm font-semibold">
               Gerir
             </Link>
           </div>
@@ -53,10 +53,10 @@ export default async function AdminDashboardPage() {
         <article className="rounded-[2rem] bg-white p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.3em] text-emerald-700">Fichas</p>
+              <p className="brand-accent text-sm font-semibold uppercase tracking-[0.3em]">Fichas</p>
               <h2 className="mt-2 text-2xl font-semibold text-slate-950">Últimos ficheiros</h2>
             </div>
-            <Link href="/admin/fichas" className="text-sm font-semibold text-emerald-700">
+            <Link href="/admin/fichas" className="brand-accent text-sm font-semibold">
               Gerir
             </Link>
           </div>

@@ -44,3 +44,15 @@ model Resource {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+model AboutPhoto {
+  id          String   @id @default(cuid())
+  title       String
+  imageName   String
+  imagePath   String
+  mimeType    String
+  sizeBytes   Int
+  isPublished Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

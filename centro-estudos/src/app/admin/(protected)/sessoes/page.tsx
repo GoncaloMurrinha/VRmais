@@ -12,7 +12,7 @@ export default async function AdminSessionsPage() {
   return (
     <div className="space-y-8">
       <section>
-        <p className="text-sm font-semibold uppercase tracking-[0.3em] text-cyan-700">Nova sessão</p>
+        <p className="brand-accent text-sm font-semibold uppercase tracking-[0.3em]">Nova sessão</p>
         <h1 className="mt-2 text-3xl font-semibold tracking-[-0.04em] text-slate-950">Calendário de sessões</h1>
         <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600">
           Cria, edita ou remove sessões. O conteúdo marcado como publicado fica disponível automaticamente no site.
@@ -32,7 +32,7 @@ export default async function AdminSessionsPage() {
                   <h2 className="text-2xl font-semibold text-slate-950">{session.title}</h2>
                   <span
                     className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                      session.isPublished ? "bg-emerald-100 text-emerald-800" : "bg-slate-200 text-slate-700"
+                      session.isPublished ? "brand-badge" : "bg-slate-200 text-slate-700"
                     }`}
                   >
                     {session.isPublished ? "Publicado" : "Rascunho"}

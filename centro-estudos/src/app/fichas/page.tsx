@@ -18,7 +18,7 @@ export default async function ResourcesPage() {
           eyebrow="Fichas"
           title="Biblioteca de recursos para apoio ao estudo."
           description="Os materiais carregados no backoffice ficam disponíveis aqui, com descrição, categoria e descarregamento direto."
-          accentClassName="text-emerald-300/80"
+          accentClassName="brand-accent-orange"
         />
         <section className="mx-auto w-full max-w-6xl px-6 pb-16">
           {!database.available ? (

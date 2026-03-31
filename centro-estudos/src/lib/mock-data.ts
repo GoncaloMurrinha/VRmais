@@ -1,4 +1,4 @@
-import type { Resource, Session } from "@prisma/client";
+import type { AboutPhoto, Resource, Session } from "@prisma/client";
 
 const now = new Date();
 
@@ -80,3 +80,5 @@ export const mockResources: Resource[] = [
     updatedAt: now,
   },
 ];
+
+export const mockAboutPhotos: AboutPhoto[] = [];
