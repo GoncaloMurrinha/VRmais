@@ -6,6 +6,12 @@ import { slugifyFileName } from "@/lib/utils";
 export const RESOURCE_BUCKET = "resources";
 export const MAX_RESOURCE_SIZE_BYTES = 2_147_483_647;
 
+type StorageErrorLike = {
+  message?: string;
+  status?: number;
+  statusCode?: string | number;
+};
+
 export function createSupabaseAdminClient() {
   const supabaseUrl = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SECRET_KEY;
@@ -60,6 +66,51 @@ export function extractResourceStoragePath(filePath: string) {
   }
 
   return filePath;
+}
+
+function isBucketMissingError(error: StorageErrorLike | null | undefined) {
+  if (!error) {
+    return false;
+  }
+
+  return (
+    error.status === 400 ||
+    error.status === 404 ||
+    error.statusCode === 400 ||
+    error.statusCode === 404 ||
+    error.statusCode === "400" ||
+    error.statusCode === "404" ||
+    error.message?.includes("related resource does not exist") === true
+  );
+}
+
+export async function ensureResourceBucketExists() {
+  const supabase = createSupabaseAdminClient();
+  const { data, error } = await supabase.storage.getBucket(RESOURCE_BUCKET);
+
+  if (!error && data) {
+    return {
+      created: false,
+      bucket: data,
+    };
+  }
+
+  if (error && !isBucketMissingError(error)) {
+    throw new Error(`Não foi possível verificar o bucket ${RESOURCE_BUCKET}: ${error.message}`);
+  }
+
+  const { data: createdBucket, error: createError } = await supabase.storage.createBucket(RESOURCE_BUCKET, {
+    public: true,
+  });
+
+  if (createError && createError.status !== 409 && String(createError.statusCode) !== "409") {
+    throw new Error(`Não foi possível criar o bucket ${RESOURCE_BUCKET}: ${createError.message}`);
+  }
+
+  return {
+    created: true,
+    bucket: createdBucket,
+  };
 }
 
 export async function removeResourceFromStorage(filePath: string) {

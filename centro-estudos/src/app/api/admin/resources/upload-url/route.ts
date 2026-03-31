@@ -3,6 +3,7 @@ import { getAdminSession } from "@/lib/auth";
 import {
   createSupabaseAdminClient,
   createUniqueResourceFilePath,
+  ensureResourceBucketExists,
   RESOURCE_BUCKET,
 } from "@/lib/resource-storage";
 import { resourceUploadRequestSchema } from "@/lib/validators";
@@ -51,6 +52,14 @@ export async function POST(request: Request) {
     const filePath = createUniqueResourceFilePath(parsed.data.fileName);
     const supabase = createSupabaseAdminClient();
 
+    const bucketState = await ensureResourceBucketExists();
+
+    if (bucketState.created) {
+      console.log("[api/admin/resources/upload-url] Bucket criado automaticamente.", {
+        bucket: RESOURCE_BUCKET,
+      });
+    }
+
     const { data, error } = await supabase.storage.from(RESOURCE_BUCKET).createSignedUploadUrl(filePath);
 
     if (error || !data?.token) {
@@ -59,7 +68,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           success: false,
-          error: "Não foi possível preparar o upload do ficheiro.",
+          error: error?.message || "Não foi possível preparar o upload do ficheiro.",
         },
         { status: 500 },
       );
