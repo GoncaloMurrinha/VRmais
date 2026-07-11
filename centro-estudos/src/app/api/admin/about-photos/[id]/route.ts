@@ -1,9 +1,8 @@
-import { unlink } from "node:fs/promises";
-import path from "node:path";
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { extractResourceStoragePath, createSupabaseAdminClient, RESOURCE_BUCKET } from "@/lib/resource-storage";
 
 export async function POST(
   request: Request,
@@ -29,13 +28,16 @@ export async function POST(
   });
 
   if (photo) {
-    const absolutePath = path.join(process.cwd(), "public", photo.imagePath.replace(/^\//, ""));
+    const storagePath = extractResourceStoragePath(photo.imagePath);
 
     await prisma.aboutPhoto.delete({
       where: { id },
     });
 
-    await unlink(absolutePath).catch(() => null);
+    if (storagePath) {
+      const supabase = createSupabaseAdminClient();
+      await supabase.storage.from(RESOURCE_BUCKET).remove([storagePath]).catch(() => null);
+    }
   }
 
   revalidatePath("/sobre");

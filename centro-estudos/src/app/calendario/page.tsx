@@ -20,7 +20,7 @@ export default async function CalendarPage() {
           description="Esta agenda pública mostra as sessões publicadas na área de gestão. Serve como base para evoluir para marcação ou integração com disponibilidade real."
           accentClassName="brand-accent-orange"
         />
-        <section className="mx-auto w-full max-w-6xl px-6 pb-16">
+        <section className="mx-auto w-full max-w-6xl px-6 pb-16 pt-8 md:pt-10">
           {!database.available ? (
             <div className="mb-8">
               <DatabaseWarning message={database.message} />

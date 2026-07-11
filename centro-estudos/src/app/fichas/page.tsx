@@ -20,7 +20,7 @@ export default async function ResourcesPage() {
           description="Os materiais carregados no backoffice ficam disponíveis aqui, com descrição, categoria e descarregamento direto."
           accentClassName="brand-accent-orange"
         />
-        <section className="mx-auto w-full max-w-6xl px-6 pb-16">
+        <section className="mx-auto w-full max-w-6xl px-6 pb-16 pt-8 md:pt-10">
           {!database.available ? (
             <div className="mb-8">
               <DatabaseWarning message={database.message} />
