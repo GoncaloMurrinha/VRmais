@@ -17,12 +17,16 @@ type SessionPayload = {
   name: string;
 };
 
+// Hash descartável: garante que o tempo de resposta é o mesmo quando o email não existe.
+const DUMMY_PASSWORD_HASH = "$2b$10$soVtJw8QoqxV3seC/.fbu.IPsGHT/Pr9uyvLjG/bpL7iHFuYKV2Se";
+
 export async function verifyCredentials(email: string, password: string) {
   const user = await prisma.adminUser.findUnique({
     where: { email: email.toLowerCase() },
   });
 
   if (!user) {
+    await bcrypt.compare(password, DUMMY_PASSWORD_HASH);
     return null;
   }
 

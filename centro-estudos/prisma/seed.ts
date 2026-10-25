@@ -2,41 +2,52 @@ import bcrypt from "bcryptjs";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
-const ADMIN_EMAIL = "admin@admin.com";
-const ADMIN_NAME = "Admin";
-const ADMIN_PASSWORD = "Admin123456!";
+
+function readAdminCredentials() {
+  const email = process.env.ADMIN_EMAIL?.toLowerCase();
+  const password = process.env.ADMIN_PASSWORD;
+  const name = process.env.ADMIN_NAME ?? "Admin";
+
+  if (!email || !password || password.length < 8) {
+    throw new Error("Define ADMIN_EMAIL e ADMIN_PASSWORD (mínimo 8 caracteres) antes de correr o seed.");
+  }
+
+  return { email, password, name };
+}
 
 async function main() {
+  const { email, password, name } = readAdminCredentials();
+
   console.log("A iniciar seed do utilizador administrador...");
 
   const existingAdmin = await prisma.adminUser.findUnique({
-    where: { email: ADMIN_EMAIL },
+    where: { email },
   });
 
   if (existingAdmin) {
-    console.log(`Administrador ${ADMIN_EMAIL} já existe. A atualizar credenciais...`);
+    console.log(`Administrador ${email} já existe. A atualizar credenciais...`);
   } else {
-    console.log(`Administrador ${ADMIN_EMAIL} não existe. A criar registo...`);
+    console.log(`Administrador ${email} não existe. A criar registo...`);
   }
 
-  const passwordHash = await bcrypt.hash(ADMIN_PASSWORD, 10);
+  const passwordHash = await bcrypt.hash(password, 10);
 
   await prisma.adminUser.upsert({
-    where: { email: ADMIN_EMAIL },
+    where: { email },
     update: {
-      name: ADMIN_NAME,
+      name,
       passwordHash,
     },
     create: {
-      email: ADMIN_EMAIL,
-      name: ADMIN_NAME,
+      email,
+      name,
       passwordHash,
     },
   });
 
   console.log("Admin criado com sucesso");
-  console.log(`Email: ${ADMIN_EMAIL}`);
-  console.log(`Nome: ${ADMIN_NAME}`);
+  console.log(`Email: ${email}`);
+  console.log(`Nome: ${name}`);
 }
 
 main()

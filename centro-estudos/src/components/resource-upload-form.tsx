@@ -1,19 +1,7 @@
 "use client";
 
-import { createClient } from "@supabase/supabase-js";
+import { upload } from "@vercel/blob/client";
 import { type FormEvent, useState } from "react";
-
-const publicSupabaseKey =
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "";
-
-type UploadUrlResponse = {
-  success: boolean;
-  error?: string;
-  bucket?: string;
-  path?: string;
-  token?: string;
-  supabaseUrl?: string;
-};
 
 type CreateResourceResponse = {
   success: boolean;
@@ -61,51 +49,12 @@ export function ResourceUploadForm() {
       return;
     }
 
-    if (!publicSupabaseKey) {
-      setError("Falta configurar a chave pública do Supabase na Vercel.");
-      setPending(false);
-      return;
-    }
-
     try {
-      const uploadUrlResponse = await fetch("/api/admin/resources/upload-url", {
-        method: "POST",
-        credentials: "same-origin",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          fileName: file.name,
-          mimeType: file.type || "application/octet-stream",
-        }),
+      const blob = await upload(`fichas/${file.name}`, file, {
+        access: "public",
+        handleUploadUrl: "/api/admin/upload",
+        multipart: file.size > 10 * 1024 * 1024,
       });
-
-      if (!uploadUrlResponse.ok) {
-        throw new Error(await readResponseError(uploadUrlResponse));
-      }
-
-      const uploadConfig = (await uploadUrlResponse.json()) as UploadUrlResponse;
-
-      if (!uploadConfig.success || !uploadConfig.path || !uploadConfig.token || !uploadConfig.supabaseUrl) {
-        throw new Error(uploadConfig.error || "Não foi possível preparar o upload.");
-      }
-
-      const supabase = createClient(uploadConfig.supabaseUrl, publicSupabaseKey, {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false,
-        },
-      });
-
-      const { error: uploadError } = await supabase.storage
-        .from(uploadConfig.bucket ?? "resources")
-        .uploadToSignedUrl(uploadConfig.path, uploadConfig.token, file, {
-          contentType: file.type || "application/octet-stream",
-        });
-
-      if (uploadError) {
-        throw new Error(uploadError.message || "Não foi possível enviar o ficheiro para o storage.");
-      }
 
       const createResourceResponse = await fetch("/api/admin/resources", {
         method: "POST",
@@ -118,7 +67,7 @@ export function ResourceUploadForm() {
           description,
           category,
           fileName: file.name,
-          filePath: uploadConfig.path,
+          filePath: blob.url,
           mimeType: file.type || "application/octet-stream",
           sizeBytes: file.size,
           isPublished,

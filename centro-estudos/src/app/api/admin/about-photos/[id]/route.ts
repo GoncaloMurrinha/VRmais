@@ -1,8 +1,8 @@
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/auth";
+import { removeBlob } from "@/lib/blob-storage";
 import { prisma } from "@/lib/prisma";
-import { extractResourceStoragePath, createSupabaseAdminClient, RESOURCE_BUCKET } from "@/lib/resource-storage";
 
 export async function POST(
   request: Request,
@@ -28,16 +28,13 @@ export async function POST(
   });
 
   if (photo) {
-    const storagePath = extractResourceStoragePath(photo.imagePath);
-
     await prisma.aboutPhoto.delete({
       where: { id },
     });
 
-    if (storagePath) {
-      const supabase = createSupabaseAdminClient();
-      await supabase.storage.from(RESOURCE_BUCKET).remove([storagePath]).catch(() => null);
-    }
+    await removeBlob(photo.imagePath).catch((error) => {
+      console.error("[api/admin/about-photos/[id]] Falha ao remover imagem do Vercel Blob.", error);
+    });
   }
 
   revalidatePath("/sobre");

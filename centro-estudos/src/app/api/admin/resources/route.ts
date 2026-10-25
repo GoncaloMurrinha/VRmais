@@ -2,7 +2,7 @@ import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { removeResourceFromStorage } from "@/lib/resource-storage";
+import { removeBlob } from "@/lib/blob-storage";
 import { resourceCreateSchema } from "@/lib/validators";
 
 export const runtime = "nodejs";
@@ -78,7 +78,7 @@ export async function POST(request: Request) {
     console.error("[api/admin/resources] Erro inesperado ao criar recurso.", error);
 
     if (filePathToCleanup) {
-      await removeResourceFromStorage(filePathToCleanup).catch((cleanupError) => {
+      await removeBlob(filePathToCleanup).catch((cleanupError) => {
         console.error("[api/admin/resources] Falha ao limpar ficheiro órfão.", cleanupError);
       });
     }
