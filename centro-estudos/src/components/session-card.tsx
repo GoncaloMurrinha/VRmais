@@ -1,20 +1,40 @@
 import type { Session } from "@prisma/client";
-import { formatDateTimeRange } from "@/lib/utils";
+import { Icon } from "@/components/icons";
+import { formatDayNumber, formatMonthShort, formatSessionWhen } from "@/lib/utils";
 
-export function SessionCard({ session }: { session: Session }) {
+export function SessionCard({ session, past = false }: { session: Session; past?: boolean }) {
   return (
-    <article className="content-surface h-full p-6">
-      <div className="mb-4">
-        <p className="brand-accent text-xs font-semibold uppercase tracking-[0.25em]">{session.category}</p>
-        <h3 className="mt-2 text-xl font-semibold text-slate-950">{session.title}</h3>
+    <article className={`card flex gap-4 p-4 sm:p-5 ${past ? "opacity-75" : ""}`}>
+      <div
+        className={`flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-xl text-white ${
+          past ? "bg-slate-500" : "bg-teal"
+        }`}
+        aria-hidden="true"
+      >
+        <span className="font-display text-2xl font-extrabold leading-none">{formatDayNumber(session.startAt)}</span>
+        <span className="mt-1 text-[0.7rem] font-semibold uppercase tracking-wider">
+          {formatMonthShort(session.startAt)}
+        </span>
       </div>
-      <p className="text-sm leading-7 text-slate-600">{session.description}</p>
-      <dl className="mt-6 space-y-2 text-sm text-slate-700">
-        <div className="flex flex-col gap-1 sm:flex-row sm:justify-between sm:gap-3">
-          <dt className="font-medium text-slate-500">Quando</dt>
-          <dd className="sm:text-right">{formatDateTimeRange(session.startAt, session.endAt)}</dd>
-        </div>
-      </dl>
+      <div className="min-w-0 flex-1">
+        <span className="badge badge-orange">{session.category}</span>
+        <h3 className="font-display mt-2 text-lg font-bold leading-snug text-teal-deep">{session.title}</h3>
+        <p className="mt-1.5 text-sm leading-6 text-muted">{session.description}</p>
+        <ul className="mt-3 space-y-1.5 text-sm text-ink">
+          <li className="flex items-start gap-2">
+            <Icon name="clock" className="mt-0.5 h-4 w-4 text-teal" />
+            <span>{formatSessionWhen(session.startAt, session.endAt)}</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <Icon name="pin" className="mt-0.5 h-4 w-4 text-teal" />
+            <span>{session.location}</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <Icon name="user" className="mt-0.5 h-4 w-4 text-teal" />
+            <span>{session.tutorName}</span>
+          </li>
+        </ul>
+      </div>
     </article>
   );
 }

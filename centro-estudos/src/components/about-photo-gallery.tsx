@@ -2,7 +2,8 @@
 
 import type { AboutPhoto } from "@prisma/client";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Icon } from "@/components/icons";
 
 export function AboutPhotoGallery({
   photos,
@@ -12,7 +13,16 @@ export function AboutPhotoGallery({
   compact?: boolean;
 }) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const touchStartX = useRef<number | null>(null);
   const activePhoto = openIndex === null ? null : photos[openIndex];
+
+  function showNext() {
+    setOpenIndex((current) => (current === null ? 0 : (current + 1) % photos.length));
+  }
+
+  function showPrevious() {
+    setOpenIndex((current) => (current === null ? 0 : (current - 1 + photos.length) % photos.length));
+  }
 
   useEffect(() => {
     if (openIndex === null) {
@@ -25,143 +35,124 @@ export function AboutPhotoGallery({
       }
 
       if (event.key === "ArrowRight") {
-        setOpenIndex((currentIndex) => {
-          if (currentIndex === null) {
-            return 0;
-          }
-
-          return (currentIndex + 1) % photos.length;
-        });
+        setOpenIndex((current) => (current === null ? 0 : (current + 1) % photos.length));
       }
 
       if (event.key === "ArrowLeft") {
-        setOpenIndex((currentIndex) => {
-          if (currentIndex === null) {
-            return 0;
-          }
-
-          return (currentIndex - 1 + photos.length) % photos.length;
-        });
+        setOpenIndex((current) => (current === null ? 0 : (current - 1 + photos.length) % photos.length));
       }
     }
 
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [openIndex, photos.length]);
-
-  useEffect(() => {
-    if (openIndex === null) {
-      document.body.style.overflow = "";
-      return;
-    }
-
     document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
 
     return () => {
       document.body.style.overflow = "";
+      window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [openIndex]);
+  }, [openIndex, photos.length]);
 
   return (
     <>
-      <div
+      <ul
         className={
           compact
-            ? "mx-auto grid max-w-3xl gap-2 grid-cols-2 md:grid-cols-3"
-            : "grid gap-4 sm:grid-cols-2 xl:grid-cols-3"
+            ? "grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4"
+            : "grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3"
         }
       >
         {photos.map((photo, index) => (
-          <button
-            key={photo.id}
-            type="button"
-            onClick={() => setOpenIndex(index)}
-            className={
-              compact
-                ? "group block overflow-hidden rounded-[1rem] bg-white shadow-[0_18px_35px_-30px_rgba(15,23,42,0.18)]"
-                : "group block overflow-hidden rounded-[1.75rem] bg-white shadow-[0_24px_60px_-38px_rgba(15,23,42,0.24)]"
-            }
-            aria-label={`Abrir fotografia ${photo.title}`}
-          >
-            <Image
-              src={photo.imagePath}
-              alt={photo.title}
-              width={1400}
-              height={1050}
-              sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
-              className={
-                compact
-                  ? "aspect-square w-full object-cover transition duration-300 group-hover:scale-[1.03]"
-                  : "h-auto w-full object-cover transition duration-300 group-hover:scale-[1.03]"
-              }
-            />
-          </button>
+          <li key={photo.id}>
+            <button
+              type="button"
+              onClick={() => setOpenIndex(index)}
+              className="group relative block aspect-[4/3] w-full overflow-hidden rounded-2xl bg-teal-soft"
+              aria-label={`Ampliar fotografia: ${photo.title}`}
+            >
+              <Image
+                src={photo.imagePath}
+                alt={photo.title}
+                fill
+                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                className="object-cover transition duration-300 group-hover:scale-105"
+              />
+              <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent px-3 pb-2 pt-8 text-left text-xs font-semibold text-white opacity-0 transition group-hover:opacity-100 group-focus-visible:opacity-100">
+                {photo.title}
+              </span>
+            </button>
+          </li>
         ))}
-      </div>
+      </ul>
 
       {activePhoto ? (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label={activePhoto.title}
+          className="fixed inset-0 z-50 flex flex-col bg-black/95"
           onClick={() => setOpenIndex(null)}
+          onTouchStart={(event) => {
+            touchStartX.current = event.touches[0]?.clientX ?? null;
+          }}
+          onTouchEnd={(event) => {
+            const startX = touchStartX.current;
+            const endX = event.changedTouches[0]?.clientX;
+            touchStartX.current = null;
+
+            if (startX === null || endX === undefined || photos.length < 2) {
+              return;
+            }
+
+            if (endX - startX > 60) showPrevious();
+            if (startX - endX > 60) showNext();
+          }}
         >
-          <button
-            type="button"
-            onClick={() => setOpenIndex(null)}
-            className="absolute right-4 top-4 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20"
-          >
-            Fechar
-          </button>
+          <div className="flex items-center justify-between gap-4 px-4 py-3 text-white">
+            <p className="min-w-0 truncate text-sm font-semibold">
+              {activePhoto.title}
+              <span className="ml-2 font-normal text-white/60">
+                {(openIndex ?? 0) + 1} / {photos.length}
+              </span>
+            </p>
+            <button
+              type="button"
+              onClick={() => setOpenIndex(null)}
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/10 hover:bg-white/20"
+              aria-label="Fechar"
+            >
+              <Icon name="close" className="h-6 w-6" />
+            </button>
+          </div>
 
-          {photos.length > 1 ? (
-            <>
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  setOpenIndex((currentIndex) => {
-                    if (currentIndex === null) {
-                      return 0;
-                    }
-
-                    return (currentIndex - 1 + photos.length) % photos.length;
-                  });
-                }}
-                className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full border border-white/15 bg-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/20"
-                aria-label="Foto anterior"
-              >
-                Anterior
-              </button>
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  setOpenIndex((currentIndex) => {
-                    if (currentIndex === null) {
-                      return 0;
-                    }
-
-                    return (currentIndex + 1) % photos.length;
-                  });
-                }}
-                className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full border border-white/15 bg-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/20"
-                aria-label="Foto seguinte"
-              >
-                Seguinte
-              </button>
-            </>
-          ) : null}
-
-          <div className="w-full max-w-5xl" onClick={(event) => event.stopPropagation()}>
+          <div className="relative flex-1" onClick={(event) => event.stopPropagation()}>
             <Image
               src={activePhoto.imagePath}
               alt={activePhoto.title}
-              width={1800}
-              height={1350}
+              fill
               sizes="100vw"
-              className="max-h-[85vh] w-full rounded-[2rem] object-contain shadow-[0_30px_100px_-45px_rgba(0,0,0,0.85)]"
+              className="object-contain"
               priority
             />
+            {photos.length > 1 ? (
+              <>
+                <button
+                  type="button"
+                  onClick={showPrevious}
+                  className="absolute left-2 top-1/2 inline-flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70 sm:left-4"
+                  aria-label="Fotografia anterior"
+                >
+                  <Icon name="arrow" className="h-6 w-6 rotate-180" />
+                </button>
+                <button
+                  type="button"
+                  onClick={showNext}
+                  className="absolute right-2 top-1/2 inline-flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70 sm:right-4"
+                  aria-label="Fotografia seguinte"
+                >
+                  <Icon name="arrow" className="h-6 w-6" />
+                </button>
+              </>
+            ) : null}
           </div>
         </div>
       ) : null}

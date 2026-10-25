@@ -1,9 +1,11 @@
 export const dynamic = "force-dynamic";
 
 import Image from "next/image";
-import { AboutPhotoDeleteForm } from "@/components/about-photo-delete-form";
 import { AboutPhotoUploadForm } from "@/components/about-photo-upload-form";
+import { AdminPageHeader } from "@/components/admin-page-header";
+import { ConfirmDeleteForm } from "@/components/confirm-delete-form";
 import { DatabaseWarning } from "@/components/database-warning";
+import { Icon } from "@/components/icons";
 import { getAdminAboutPhotosData } from "@/lib/data";
 import { formatFileSize } from "@/lib/utils";
 
@@ -12,62 +14,65 @@ export default async function AdminAboutPage() {
 
   return (
     <div className="space-y-8">
-      <section>
-        <p className="brand-accent text-sm font-semibold uppercase tracking-[0.3em]">Quem somos</p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-[-0.04em] text-slate-950">Galeria da página pública</h1>
-        <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600">
-          Carrega fotografias para a secção de galeria apresentada na página Quem somos.
-        </p>
-      </section>
+      <AdminPageHeader
+        title="Fotografias"
+        description="Gere a galeria da página Quem somos. As fotografias visíveis aparecem também na página inicial."
+      />
 
       {!database.available ? <DatabaseWarning message={database.message} /> : null}
-
       {database.available ? <AboutPhotoUploadForm /> : null}
 
-      <section className="grid gap-5">
+      <section aria-labelledby="lista-fotos">
+        <h2 id="lista-fotos" className="font-display text-lg font-bold text-teal-deep">
+          Fotografias carregadas ({photos.length})
+        </h2>
+
         {photos.length > 0 ? (
-          photos.map((photo) => (
-            <article key={photo.id} className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
-              <div className="grid gap-5 lg:grid-cols-[18rem_minmax(0,1fr)]">
-                <div className="relative aspect-[4/3] overflow-hidden rounded-[1.5rem] bg-slate-100">
+          <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {photos.map((photo) => (
+              <li key={photo.id} className="card flex flex-col overflow-hidden">
+                <div className="relative aspect-[4/3] bg-teal-soft">
                   <Image
                     src={photo.imagePath}
                     alt={photo.title}
                     fill
-                    sizes="(max-width: 1024px) 100vw, 18rem"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     className="object-cover"
                   />
                 </div>
-                <div className="flex flex-col justify-between gap-4">
+                <div className="flex flex-1 flex-col gap-3 p-4">
                   <div>
-                    <div className="flex flex-wrap items-center gap-3">
-                      <h2 className="text-2xl font-semibold text-slate-950">{photo.title}</h2>
-                      <span
-                        className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                          photo.isPublished ? "brand-badge" : "bg-slate-200 text-slate-700"
-                        }`}
-                      >
-                        {photo.isPublished ? "Publicado" : "Rascunho"}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="font-display text-base font-bold text-teal-deep">{photo.title}</h3>
+                      <span className={`badge ${photo.isPublished ? "badge-success" : "badge-neutral"}`}>
+                        {photo.isPublished ? "Visível" : "Rascunho"}
                       </span>
                     </div>
-                    <p className="mt-3 text-sm text-slate-500">
+                    <p className="mt-1 break-all text-xs text-muted">
                       {photo.imageName} · {formatFileSize(photo.sizeBytes)}
                     </p>
                   </div>
-                  <div className="flex items-center gap-5">
-                    <a href={photo.imagePath} target="_blank" rel="noreferrer" className="brand-accent text-sm font-semibold">
+                  <div className="mt-auto flex flex-col gap-2 sm:flex-row">
+                    <a href={photo.imagePath} target="_blank" rel="noopener noreferrer" className="btn btn-outline">
+                      <Icon name="external" className="h-4 w-4" />
                       Abrir
                     </a>
-                    {database.available ? <AboutPhotoDeleteForm id={photo.id} /> : null}
+                    {database.available ? (
+                      <ConfirmDeleteForm
+                        action={`/api/admin/about-photos/${photo.id}`}
+                        fields={{ _method: "delete" }}
+                        message={`Eliminar a fotografia "${photo.title}"? Esta ação não pode ser desfeita.`}
+                      />
+                    ) : null}
                   </div>
                 </div>
-              </div>
-            </article>
-          ))
+              </li>
+            ))}
+          </ul>
         ) : (
-          <div className="rounded-[2rem] border border-dashed border-slate-300 bg-white p-8 text-slate-600">
-            Ainda não existem fotografias publicadas para a página Quem somos.
-          </div>
+          <p className="card mt-4 px-6 py-10 text-center text-sm text-muted">
+            Ainda não há fotografias. Adiciona a primeira no formulário acima.
+          </p>
         )}
       </section>
     </div>

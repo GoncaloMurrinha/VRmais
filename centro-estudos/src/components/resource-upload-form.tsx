@@ -1,165 +1,202 @@
 "use client";
 
 import { upload } from "@vercel/blob/client";
+import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
-
-type CreateResourceResponse = {
-  success: boolean;
-  error?: string;
-};
+import { Icon } from "@/components/icons";
+import { UploadDropzone } from "@/components/upload-dropzone";
 
 async function readResponseError(response: Response) {
   const contentType = response.headers.get("content-type") ?? "";
 
   if (contentType.includes("application/json")) {
     const payload = (await response.json()) as { error?: string };
-    return payload.error || `Pedido falhou com estado ${response.status}.`;
+    return payload.error || `O pedido falhou (código ${response.status}).`;
   }
 
-  const text = await response.text();
-  const normalizedText = text.replace(/\s+/g, " ").trim();
+  const text = (await response.text()).replace(/\s+/g, " ").trim();
 
-  if (!normalizedText) {
-    return `Pedido falhou com estado ${response.status}.`;
-  }
-
-  return normalizedText.slice(0, 180);
+  return text ? text.slice(0, 180) : `O pedido falhou (código ${response.status}).`;
 }
 
-export function ResourceUploadForm() {
+export function ResourceUploadForm({ categories = [] }: { categories?: string[] }) {
+  const router = useRouter();
+  const [file, setFile] = useState<File | null>(null);
   const [pending, setPending] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setPending(true);
     setError("");
+    setSuccess("");
 
     const form = event.currentTarget;
     const formData = new FormData(form);
-    const title = String(formData.get("title") ?? "");
-    const description = String(formData.get("description") ?? "");
-    const category = String(formData.get("category") ?? "");
-    const isPublished = formData.get("isPublished") === "on";
-    const file = formData.get("file");
 
-    if (!(file instanceof File) || file.size === 0) {
-      setError("Seleciona um ficheiro válido.");
-      setPending(false);
+    if (!file) {
+      setError("Escolhe um ficheiro para carregar.");
       return;
     }
+
+    setPending(true);
+    setProgress(0);
 
     try {
       const blob = await upload(`fichas/${file.name}`, file, {
         access: "public",
         handleUploadUrl: "/api/admin/upload",
         multipart: file.size > 10 * 1024 * 1024,
+        onUploadProgress: ({ percentage }) => setProgress(Math.round(percentage)),
       });
 
-      const createResourceResponse = await fetch("/api/admin/resources", {
+      const response = await fetch("/api/admin/resources", {
         method: "POST",
         credentials: "same-origin",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          title,
-          description,
-          category,
+          title: String(formData.get("title") ?? ""),
+          description: String(formData.get("description") ?? ""),
+          category: String(formData.get("category") ?? ""),
           fileName: file.name,
           filePath: blob.url,
           mimeType: file.type || "application/octet-stream",
           sizeBytes: file.size,
-          isPublished,
+          isPublished: formData.get("isPublished") === "on",
         }),
       });
 
-      if (!createResourceResponse.ok) {
-        throw new Error(await readResponseError(createResourceResponse));
+      if (!response.ok) {
+        throw new Error(await readResponseError(response));
       }
 
-      const createResourceResult = (await createResourceResponse.json()) as CreateResourceResponse;
+      const result = (await response.json()) as { success: boolean; error?: string };
 
-      if (!createResourceResult.success) {
-        throw new Error(createResourceResult.error || "Não foi possível guardar a ficha na base de dados.");
+      if (!result.success) {
+        throw new Error(result.error || "Não foi possível guardar a ficha.");
       }
 
       form.reset();
-      window.location.assign("/admin/fichas");
+      setFile(null);
+      setSuccess("Ficha carregada com sucesso.");
+      router.refresh();
     } catch (submitError) {
-      const message = submitError instanceof Error ? submitError.message : "O upload falhou.";
       console.error("[resource-upload-form] Upload falhou.", submitError);
-      setError(message);
+      setError(submitError instanceof Error ? submitError.message : "O upload falhou. Tenta novamente.");
     } finally {
       setPending(false);
     }
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="content-surface grid gap-4 p-5 md:grid-cols-2 md:p-6"
-    >
-      <div className="md:col-span-2">
-        <label htmlFor="resource-title" className="mb-2 block text-sm font-medium text-slate-700">
-          Título
-        </label>
-        <input
-          id="resource-title"
-          name="title"
-          required
-          className="brand-input w-full rounded-2xl px-4 py-3"
-        />
-      </div>
-      <div className="md:col-span-2">
-        <label htmlFor="resource-description" className="mb-2 block text-sm font-medium text-slate-700">
-          Descrição
-        </label>
-        <textarea
-          id="resource-description"
-          name="description"
-          rows={4}
-          required
-          className="brand-input w-full rounded-2xl px-4 py-3"
-        />
-      </div>
+    <form onSubmit={handleSubmit} className="card space-y-5 p-5 sm:p-6">
       <div>
-        <label htmlFor="resource-category" className="mb-2 block text-sm font-medium text-slate-700">
-          Categoria
+        <h2 className="font-display text-lg font-bold text-teal-deep">Carregar nova ficha</h2>
+        <p className="mt-1 text-sm text-muted">Aceita PDF, Word, PowerPoint, Excel e imagens (até 50 MB).</p>
+      </div>
+
+      <UploadDropzone
+        id="resource-file"
+        title="Toca para escolher um ficheiro ou arrasta-o para aqui"
+        hint="PDF, Word, PowerPoint, Excel ou imagem"
+        file={file}
+        onFileChange={setFile}
+        disabled={pending}
+      />
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="sm:col-span-2">
+          <label htmlFor="resource-title" className="label">
+            Título
+          </label>
+          <input
+            id="resource-title"
+            name="title"
+            required
+            minLength={3}
+            placeholder="Ex.: Revisão de Matemática 9.º ano"
+            className="field"
+            disabled={pending}
+          />
+        </div>
+        <div className="sm:col-span-2">
+          <label htmlFor="resource-description" className="label">
+            Descrição
+          </label>
+          <textarea
+            id="resource-description"
+            name="description"
+            rows={3}
+            required
+            minLength={10}
+            placeholder="Para que serve esta ficha? (mínimo 10 caracteres)"
+            className="field"
+            disabled={pending}
+          />
+        </div>
+        <div>
+          <label htmlFor="resource-category" className="label">
+            Categoria
+          </label>
+          <input
+            id="resource-category"
+            name="category"
+            list="resource-categories"
+            required
+            minLength={2}
+            placeholder="Ex.: Matemática"
+            className="field"
+            disabled={pending}
+          />
+          <datalist id="resource-categories">
+            {categories.map((category) => (
+              <option key={category} value={category} />
+            ))}
+          </datalist>
+          <p className="hint">Usa a mesma categoria nas fichas do mesmo tema para os alunos as encontrarem.</p>
+        </div>
+        <label className="flex min-h-11 cursor-pointer items-center gap-3 self-center rounded-xl border border-line bg-bg px-4 py-3 text-sm font-semibold text-ink">
+          <input
+            name="isPublished"
+            type="checkbox"
+            defaultChecked
+            className="h-5 w-5 accent-[var(--teal)]"
+            disabled={pending}
+          />
+          Visível no site público
         </label>
-        <input
-          id="resource-category"
-          name="category"
-          required
-          className="brand-input w-full rounded-2xl px-4 py-3"
-        />
       </div>
-      <div>
-        <label htmlFor="resource-file" className="mb-2 block text-sm font-medium text-slate-700">
-          Ficheiro
-        </label>
-        <input
-          id="resource-file"
-          name="file"
-          type="file"
-          required
-          className="brand-input w-full rounded-2xl px-4 py-3"
-        />
-      </div>
-      <label className="md:col-span-2 flex items-center gap-3 text-sm font-medium text-slate-700">
-        <input name="isPublished" type="checkbox" defaultChecked className="h-4 w-4 rounded border-slate-300" />
-        Disponível no site público
-      </label>
-      {error ? <p className="md:col-span-2 text-sm text-rose-600">{error}</p> : null}
-      <div className="flex items-center md:justify-end">
-        <button
-          type="submit"
-          disabled={pending}
-          className="brand-button-secondary w-full px-5 py-3 text-sm font-semibold md:w-auto"
-        >
-          {pending ? "A carregar..." : "Carregar ficha"}
-        </button>
-      </div>
+
+      {pending ? (
+        <div role="status" aria-live="polite">
+          <div className="flex items-center justify-between text-sm font-semibold text-teal-deep">
+            <span>{progress < 100 ? "A enviar o ficheiro…" : "A guardar…"}</span>
+            <span>{progress}%</span>
+          </div>
+          <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-teal-soft">
+            <div className="h-full rounded-full bg-teal transition-[width] duration-200" style={{ width: `${progress}%` }} />
+          </div>
+        </div>
+      ) : null}
+
+      {error ? (
+        <p role="alert" className="flex items-start gap-2 rounded-xl bg-danger-soft px-4 py-3 text-sm font-medium text-danger">
+          <Icon name="alert" className="mt-0.5 h-4 w-4" />
+          {error}
+        </p>
+      ) : null}
+      {success ? (
+        <p role="status" className="flex items-start gap-2 rounded-xl bg-success-soft px-4 py-3 text-sm font-medium text-success">
+          <Icon name="check" className="mt-0.5 h-4 w-4" />
+          {success}
+        </p>
+      ) : null}
+
+      <button type="submit" disabled={pending} className="btn btn-secondary min-h-12 w-full sm:w-auto">
+        <Icon name="upload" className="h-5 w-5" />
+        {pending ? "A carregar…" : "Carregar ficha"}
+      </button>
     </form>
   );
 }

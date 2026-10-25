@@ -1,158 +1,227 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
-  --brand-teal: #185765;
-  --brand-teal-deep: #103e49;
-  --brand-teal-soft: #2a6f7d;
-  --brand-orange: #f6a623;
-  --brand-orange-soft: #ffd27b;
-  --brand-surface: #ffffff;
-  --brand-line: #e2e8f0;
-  --brand-muted: #475569;
+  --bg: #f6f7f5;
+  --ink: #0e2a31;
+  --muted: #4b6168;
+  --line: #dde5e3;
+  --teal: #185765;
+  --teal-deep: #0f3f4a;
+  --teal-soft: #e6f0ef;
+  --orange: #f2a02f;
+  --orange-hover: #ffb347;
+  --orange-deep: #a85f00;
+  --orange-soft: #fdf0d9;
+  --danger: #b42318;
+  --danger-soft: #fef0ee;
+  --success: #17613f;
+  --success-soft: #e5f4ec;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--bg);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-teal: var(--teal);
+  --color-teal-deep: var(--teal-deep);
+  --color-teal-soft: var(--teal-soft);
+  --color-orange: var(--orange);
+  --color-orange-hover: var(--orange-hover);
+  --color-orange-deep: var(--orange-deep);
+  --color-orange-soft: var(--orange-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
+  --font-display: var(--font-bricolage), var(--font-geist-sans), system-ui, sans-serif;
 }
 
-* {
-  box-sizing: border-box;
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+
+  ::selection {
+    background: rgba(242, 160, 47, 0.32);
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--orange);
+    outline-offset: 2px;
+    border-radius: 0.5rem;
+  }
 }
 
-html {
-  scroll-behavior: smooth;
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-geist-sans), sans-serif;
-}
+@layer components {
+  .container-page {
+    @apply mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8;
+  }
 
-a {
-  color: inherit;
-  text-decoration: none;
-}
+  .font-display {
+    font-family: var(--font-display);
+  }
 
-button,
-input,
-textarea {
-  font: inherit;
-}
+  /* Botões: usar sempre "btn" + uma variante */
+  .btn {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-60;
+  }
 
-::selection {
-  background: rgba(246, 166, 35, 0.28);
-}
+  .btn-primary {
+    background: var(--orange);
+    color: var(--teal-deep);
+  }
 
-.page-shell {
-  min-height: 100vh;
-  background: linear-gradient(180deg, #f8fafc 0%, #f3f6f8 100%);
-}
+  .btn-primary:hover:not(:disabled) {
+    background: var(--orange-hover);
+  }
 
-.section-title {
-  font-size: clamp(2rem, 3vw, 3.25rem);
-  line-height: 1.05;
-  font-weight: 650;
-  letter-spacing: -0.03em;
-}
+  .btn-secondary {
+    background: var(--teal);
+    color: white;
+  }
 
-.section-copy {
-  max-width: 42rem;
-  color: var(--brand-muted);
-  line-height: 1.8;
-}
+  .btn-secondary:hover:not(:disabled) {
+    background: var(--teal-deep);
+  }
 
-.content-surface {
-  border-radius: 2rem;
-  border: 1px solid var(--brand-line);
-  background: rgba(255, 255, 255, 0.96);
-  box-shadow: 0 20px 60px -35px rgba(15, 23, 42, 0.18);
-}
+  .btn-outline {
+    border: 1px solid var(--line);
+    background: white;
+    color: var(--teal-deep);
+  }
 
-.dark-hero-band {
-  background:
-    radial-gradient(circle at top left, rgba(246, 166, 35, 0.1), transparent 24%),
-    radial-gradient(circle at top right, rgba(24, 87, 101, 0.12), transparent 24%),
-    linear-gradient(180deg, #08111d 0%, #0f172a 100%);
-}
+  .btn-outline:hover:not(:disabled) {
+    border-color: var(--teal);
+    background: var(--teal-soft);
+  }
 
-.brand-accent {
-  color: var(--brand-teal);
-}
+  .btn-outline-light {
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    color: white;
+  }
 
-.brand-accent-soft {
-  color: rgba(24, 87, 101, 0.82);
-}
+  .btn-outline-light:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.12);
+  }
 
-.brand-accent-orange {
-  color: rgba(246, 166, 35, 0.85);
-}
+  .btn-danger {
+    border: 1px solid #f3c6c1;
+    background: white;
+    color: var(--danger);
+  }
 
-.brand-panel {
-  background: linear-gradient(135deg, #0f172a, #102a36 58%, #185765 100%);
-  color: white;
-}
+  .btn-danger:hover:not(:disabled) {
+    background: var(--danger-soft);
+  }
 
-.brand-button {
-  border-radius: 9999px;
-  background: var(--brand-orange);
-  color: #17323a;
-  transition: background-color 0.2s ease, transform 0.2s ease;
-}
+  .card {
+    @apply rounded-2xl border border-line bg-white;
+    box-shadow:
+      0 1px 2px rgba(15, 63, 74, 0.05),
+      0 12px 28px -16px rgba(15, 63, 74, 0.16);
+  }
 
-.brand-button:hover {
-  background: #ffbb4c;
-}
+  .card-link {
+    @apply transition duration-200;
+  }
 
-.brand-button-secondary {
-  border-radius: 9999px;
-  background: var(--brand-teal-deep);
-  color: white;
-  transition: background-color 0.2s ease, transform 0.2s ease;
-}
+  .card-link:hover {
+    transform: translateY(-2px);
+    border-color: var(--teal);
+  }
 
-.brand-button-secondary:hover {
-  background: var(--brand-teal-soft);
-}
+  .eyebrow {
+    @apply text-xs font-bold uppercase tracking-[0.18em];
+    color: var(--orange-deep);
+  }
 
-.brand-outline-button {
-  border-radius: 9999px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.08);
-  color: white;
-  transition: background-color 0.2s ease;
-}
+  /* Campos de formulário (16px evita o zoom automático no iPhone) */
+  .label {
+    @apply mb-1.5 block text-sm font-semibold text-ink;
+  }
 
-.brand-outline-button:hover {
-  background: rgba(255, 255, 255, 0.14);
-}
+  .hint {
+    @apply mt-1.5 text-xs text-muted;
+  }
 
-.brand-badge {
-  background: #e5f0ed;
-  color: var(--brand-teal);
-}
+  .field {
+    @apply min-h-11 w-full rounded-xl border bg-white px-4 py-2.5 text-base text-ink placeholder:text-slate-400;
+    border-color: #c5d3d0;
+    transition:
+      border-color 0.15s ease,
+      box-shadow 0.15s ease;
+  }
 
-.brand-input {
-  border: 1px solid #c8d6d3;
-  background: white;
-  color: var(--foreground);
-  outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
+  .field:hover {
+    border-color: #9fb5b1;
+  }
 
-.brand-input:focus {
-  border-color: var(--brand-teal);
-  box-shadow: 0 0 0 3px rgba(24, 87, 101, 0.12);
-}
+  .field:focus {
+    border-color: var(--teal);
+    box-shadow: 0 0 0 4px rgba(24, 87, 101, 0.14);
+    outline: none;
+  }
 
-.brand-warning {
-  border: 1px solid #f0cb86;
-  background: linear-gradient(180deg, #fff6e6, #ffefcf);
-  color: #6e4610;
-  box-shadow: 0 18px 50px -35px rgba(140, 84, 11, 0.32);
+  .badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold;
+  }
+
+  .badge-teal {
+    background: var(--teal-soft);
+    color: var(--teal);
+  }
+
+  .badge-orange {
+    background: var(--orange-soft);
+    color: var(--orange-deep);
+  }
+
+  .badge-neutral {
+    background: #e9eeed;
+    color: var(--muted);
+  }
+
+  .badge-success {
+    background: var(--success-soft);
+    color: var(--success);
+  }
 }
