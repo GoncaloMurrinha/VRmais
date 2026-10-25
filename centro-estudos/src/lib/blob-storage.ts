@@ -8,6 +8,10 @@ export const PHOTO_BLOB_PREFIX = "sobre/";
 
 // O plano Hobby da Vercel inclui 1 GB de Blob, por isso o limite por ficheiro é conservador.
 export const MAX_RESOURCE_SIZE_BYTES = 50 * 1024 * 1024;
+export const MAX_PHOTO_SIZE_BYTES = 15 * 1024 * 1024;
+
+// Lista explícita (sem "image/*") para não aceitar SVG, que pode conter scripts.
+export const IMAGE_CONTENT_TYPES = ["image/png", "image/jpeg", "image/webp", "image/avif", "image/gif"];
 
 export const RESOURCE_CONTENT_TYPES = [
   "application/pdf",
@@ -17,7 +21,7 @@ export const RESOURCE_CONTENT_TYPES = [
   "application/vnd.openxmlformats-officedocument.presentationml.presentation",
   "application/vnd.ms-excel",
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-  "image/*",
+  ...IMAGE_CONTENT_TYPES,
 ];
 
 export async function removeBlob(fileUrl: string) {

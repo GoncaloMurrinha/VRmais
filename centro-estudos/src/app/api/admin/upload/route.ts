@@ -2,6 +2,8 @@ import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/auth";
 import {
+  IMAGE_CONTENT_TYPES,
+  MAX_PHOTO_SIZE_BYTES,
   MAX_RESOURCE_SIZE_BYTES,
   PHOTO_BLOB_PREFIX,
   RESOURCE_BLOB_PREFIX,
@@ -36,8 +38,8 @@ export async function POST(request: Request) {
 
         if (pathname.startsWith(PHOTO_BLOB_PREFIX)) {
           return {
-            allowedContentTypes: ["image/*"],
-            maximumSizeInBytes: MAX_RESOURCE_SIZE_BYTES,
+            allowedContentTypes: IMAGE_CONTENT_TYPES,
+            maximumSizeInBytes: MAX_PHOTO_SIZE_BYTES,
             addRandomSuffix: true,
           };
         }
