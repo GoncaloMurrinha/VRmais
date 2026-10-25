@@ -38,6 +38,15 @@ export function formatFileSize(sizeBytes: number) {
   return `${value.toFixed(1)} ${units[unitIndex]}`;
 }
 
+export function isBlobUrl(value: string) {
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" && url.hostname.endsWith(".public.blob.vercel-storage.com");
+  } catch {
+    return false;
+  }
+}
+
 export function slugifyFileName(fileName: string) {
   const [name, ...extensionParts] = fileName.split(".");
   const extension = extensionParts.join(".");

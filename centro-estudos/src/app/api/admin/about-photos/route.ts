@@ -1,80 +1,58 @@
-import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/auth";
+import { removeBlob } from "@/lib/blob-storage";
 import { prisma } from "@/lib/prisma";
-import {
-  buildResourcePublicUrl,
-  createSupabaseAdminClient,
-  ensureResourceBucketExists,
-  RESOURCE_BUCKET,
-} from "@/lib/resource-storage";
-import { slugifyFileName } from "@/lib/utils";
-import { aboutPhotoSchema } from "@/lib/validators";
+import { aboutPhotoCreateSchema } from "@/lib/validators";
+
+export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   const session = await getAdminSession();
 
   if (!session) {
-    return NextResponse.redirect(new URL("/admin/login", request.url), 303);
+    return NextResponse.json({ success: false, error: "Não autorizado." }, { status: 401 });
   }
 
-  const formData = await request.formData();
-  const parsed = aboutPhotoSchema.safeParse({
-    title: formData.get("title"),
-    isPublished: formData.get("isPublished"),
-  });
-  const file = formData.get("file");
-
-  if (
-    !parsed.success ||
-    !(file instanceof File) ||
-    file.size === 0 ||
-    (file.type && !file.type.startsWith("image/"))
-  ) {
-    return NextResponse.redirect(new URL("/admin/quem-somos", request.url), 303);
-  }
+  let imagePathToCleanup: string | null = null;
 
   try {
-    const bytes = await file.arrayBuffer();
-    const safeName = `${randomUUID()}-${slugifyFileName(file.name)}`;
-    const filePath = `about/${safeName}`;
-    const supabase = createSupabaseAdminClient();
+    const body = await request.json();
+    const parsed = aboutPhotoCreateSchema.safeParse(body);
 
-    await ensureResourceBucketExists();
-
-    const { error: uploadError } = await supabase.storage.from(RESOURCE_BUCKET).upload(filePath, Buffer.from(bytes), {
-      contentType: file.type || "application/octet-stream",
-    });
-
-    if (uploadError) {
-      console.error("[api/admin/about-photos] Erro ao fazer upload para Supabase:", uploadError);
-      return NextResponse.redirect(new URL("/admin/quem-somos", request.url), 303);
+    if (!parsed.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Dados inválidos.",
+          details: parsed.error.flatten().fieldErrors,
+        },
+        { status: 400 },
+      );
     }
 
-    const publicUrl = buildResourcePublicUrl(filePath);
+    imagePathToCleanup = parsed.data.imagePath;
 
-    if (!publicUrl) {
-      return NextResponse.redirect(new URL("/admin/quem-somos", request.url), 303);
-    }
-
-    await prisma.aboutPhoto.create({
-      data: {
-        title: parsed.data.title,
-        isPublished: parsed.data.isPublished === "on",
-        imageName: file.name,
-        imagePath: publicUrl,
-        mimeType: file.type || "application/octet-stream",
-        sizeBytes: file.size,
-      },
+    const photo = await prisma.aboutPhoto.create({
+      data: parsed.data,
     });
 
     revalidatePath("/sobre");
     revalidatePath("/admin");
     revalidatePath("/admin/quem-somos");
-  } catch (error) {
-    console.error("[api/admin/about-photos] Erro ao processar upload:", error);
-  }
 
-  return NextResponse.redirect(new URL("/admin/quem-somos", request.url), 303);
+    return NextResponse.json({ success: true, photo }, { status: 201 });
+  } catch (error) {
+    console.error("[api/admin/about-photos] Erro ao guardar a fotografia.", error);
+
+    if (imagePathToCleanup) {
+      await removeBlob(imagePathToCleanup).catch((cleanupError) => {
+        console.error("[api/admin/about-photos] Falha ao limpar imagem órfã.", cleanupError);
+      });
+    }
+
+    const message = error instanceof Error ? error.message : "Ocorreu um erro ao guardar a fotografia.";
+
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
+  }
 }

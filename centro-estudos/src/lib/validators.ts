@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isBlobUrl } from "@/lib/utils";
 
 export const loginSchema = z.object({
   email: z.email("Introduz um email válido."),
@@ -33,23 +34,24 @@ export const resourceSchema = z.object({
   isPublished: z.string().optional(),
 });
 
-export const resourceUploadRequestSchema = z.object({
-  fileName: z.string().min(1),
-  mimeType: z.string().min(1).optional(),
-});
+const blobUrlSchema = z.string().refine(isBlobUrl, "O ficheiro tem de estar no Vercel Blob.");
 
 export const resourceCreateSchema = z.object({
   title: z.string().min(3),
   description: z.string().min(10),
   category: z.string().min(2),
   fileName: z.string().min(1),
-  filePath: z.string().min(1),
+  filePath: blobUrlSchema,
   mimeType: z.string().min(1),
   sizeBytes: z.coerce.number().int().min(1).max(2_147_483_647),
   isPublished: z.boolean().optional().default(true),
 });
 
-export const aboutPhotoSchema = z.object({
+export const aboutPhotoCreateSchema = z.object({
   title: z.string().min(2),
-  isPublished: z.string().optional(),
+  imageName: z.string().min(1),
+  imagePath: blobUrlSchema,
+  mimeType: z.string().min(1),
+  sizeBytes: z.coerce.number().int().min(1).max(2_147_483_647),
+  isPublished: z.boolean().optional().default(true),
 });

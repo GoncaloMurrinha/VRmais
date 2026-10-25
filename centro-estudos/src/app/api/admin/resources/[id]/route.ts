@@ -1,10 +1,8 @@
-import { unlink } from "node:fs/promises";
-import path from "node:path";
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/auth";
+import { removeBlob } from "@/lib/blob-storage";
 import { prisma } from "@/lib/prisma";
-import { extractResourceStoragePath, removeResourceFromStorage } from "@/lib/resource-storage";
 
 export const runtime = "nodejs";
 
@@ -27,7 +25,6 @@ export async function POST(
   }
 
   const { id } = await context.params;
-  console.log("[api/admin/resources/[id]] Pedido de remoção recebido.", { id });
   const resource = await prisma.resource.findUnique({
     where: { id },
   });
@@ -37,26 +34,9 @@ export async function POST(
       where: { id },
     });
 
-    const storagePath = extractResourceStoragePath(resource.filePath);
-
-    if (storagePath) {
-      await removeResourceFromStorage(storagePath)
-        .then(() => {
-          console.log("[api/admin/resources/[id]] Ficheiro removido do Supabase Storage.", {
-            storagePath,
-          });
-        })
-        .catch((error) => {
-          console.error("[api/admin/resources/[id]] Falha ao remover ficheiro do Supabase Storage.", error);
-        });
-    } else {
-      const absolutePath = path.join(process.cwd(), "public", resource.filePath.replace(/^\//, ""));
-
-      await unlink(absolutePath).catch((error) => {
-        console.error("[api/admin/resources/[id]] Falha ao remover ficheiro local.", error);
-        return null;
-      });
-    }
+    await removeBlob(resource.filePath).catch((error) => {
+      console.error("[api/admin/resources/[id]] Falha ao remover ficheiro do Vercel Blob.", error);
+    });
   }
 
   revalidatePath("/");

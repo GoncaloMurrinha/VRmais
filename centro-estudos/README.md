@@ -1,80 +1,45 @@
-# Centro de Estudos Horizonte
+# Centro de Estudos VR+
 
-Base funcional em `Next.js 16 + TypeScript` para um centro de estudos, com:
+Site de um centro de estudos em `Next.js 16 + TypeScript`, com:
 
-- site público
-- área admin autenticada
-- calendário de sessões
-- biblioteca de fichas com upload
-- Prisma + PostgreSQL
+- site público (`/`, `/fichas`, `/calendario`, `/sobre`, `/contactos`)
+- dashboard do professor em `/admin` (sessões, fichas, fotografias de "Quem somos")
+- Prisma + PostgreSQL em **Neon**
+- PDFs e fotografias em **Vercel Blob**
 
-## O que existia
+## Serviços necessários
 
-O repositório continha apenas o template inicial do `create-next-app` com `Next.js`, `React`, `TypeScript` e `Tailwind CSS v4`.
+| Serviço | Para quê | Variáveis |
+|---|---|---|
+| Neon (Postgres) | utilizadores, sessões e registo das fichas | `DATABASE_URL`, `DATABASE_URL_UNPOOLED` |
+| Vercel Blob | ficheiros (PDFs, imagens) | `BLOB_READ_WRITE_TOKEN` |
+| — | assinatura do cookie de admin | `AUTH_SECRET` |
 
-## O que foi criado
+Os uploads vão diretamente do browser para o Vercel Blob (não passam pela função do Next), por isso não há o limite de 4,5 MB da Vercel. O limite por ficheiro é definido em `src/lib/blob-storage.ts`.
 
-- homepage institucional
-- páginas públicas: `/calendario`, `/fichas`, `/contactos`
-- login admin em `/admin/login`
-- dashboard admin em `/admin`
-- gestão de sessões em `/admin/sessoes`
-- upload e gestão de fichas em `/admin/fichas`
-- proteção de rotas com `proxy.ts`
-- autenticação admin com cookie assinado
-- schema Prisma para admins, sessões e ficheiros
-- seed inicial com utilizador admin e sessões de exemplo
+## Setup local
 
-## Setup
-
-1. Instalar dependências:
-
-```bash
-npm install
-```
-
-2. Criar `.env.local` a partir de `.env.example`.
-
-3. Garantir que o PostgreSQL está disponível e criar a base de dados indicada em `DATABASE_URL`.
-
-4. Gerar o cliente Prisma:
+1. `npm install`
+2. Copiar `.env.example` para `.env.local` e preencher (instruções dentro do ficheiro).
+3. Aplicar as migrações e criar o administrador:
 
 ```bash
 npm run prisma:generate
-```
-
-5. Aplicar o schema na base de dados:
-
-```bash
-npx prisma db push
-```
-
-6. Carregar dados iniciais:
-
-```bash
+npm run prisma:deploy
 npm run prisma:seed
 ```
 
-7. Arrancar o projeto:
+O seed lê `ADMIN_EMAIL` e `ADMIN_PASSWORD` (mínimo 8 caracteres) do ambiente.
 
-```bash
-npm run dev
-```
+4. `npm run dev`
 
-## Credenciais iniciais
+## Deploy na Vercel
 
-- Email: `admin@centroestudos.pt`
-- Password: definida por `ADMIN_PASSWORD` no ficheiro de ambiente
-- Valor por omissão na seed: `admin123456`
+1. Importar o repositório e definir a *Root Directory* como `centro-estudos`.
+2. Em **Storage**, criar um *Blob store* (público) e ligá-lo ao projeto. A Vercel cria `BLOB_READ_WRITE_TOKEN` sozinha.
+3. Em **Storage**, criar uma base de dados Neon e ligá-la ao projeto (cria `DATABASE_URL` e `DATABASE_URL_UNPOOLED`). Definir também `AUTH_SECRET`.
+4. O `npm run build` corre `prisma migrate deploy` antes de compilar.
 
-## Validação feita
+## Segredos
 
-- `npm run lint`
-- `npm run build`
-
-## Próximos passos naturais
-
-- paginação e filtros no admin
-- gestão de inscrições nas sessões
-- editor de conteúdos institucionais
-- armazenamento externo para uploads se quiseres sair do disco local
+Nunca fazer commit de ficheiros `.env*` (exceto `.env.example`). O `.gitignore` já os ignora.
