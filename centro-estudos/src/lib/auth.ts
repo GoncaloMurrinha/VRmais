@@ -76,10 +76,24 @@ export const getAdminSession = cache(async () => {
   try {
     const { payload } = await jwtVerify(token, secret);
 
+    if (!payload.sub) {
+      return null;
+    }
+
+    // A conta tem de continuar a existir: assim, remover um professor termina logo a sua sessão.
+    const user = await prisma.adminUser.findUnique({
+      where: { id: payload.sub },
+      select: { id: true, email: true, name: true },
+    });
+
+    if (!user) {
+      return null;
+    }
+
     return {
-      id: payload.sub,
-      email: payload.email as string,
-      name: payload.name as string,
+      id: user.id,
+      email: user.email,
+      name: user.name,
     };
   } catch {
     return null;

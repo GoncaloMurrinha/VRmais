@@ -9,6 +9,7 @@ const items: { href: string; label: string; short: string; icon: IconName }[] = 
   { href: "/admin/sessoes", label: "Sessões", short: "Sessões", icon: "calendar" },
   { href: "/admin/fichas", label: "Fichas", short: "Fichas", icon: "file" },
   { href: "/admin/quem-somos", label: "Fotografias", short: "Fotos", icon: "image" },
+  { href: "/admin/professores", label: "Professores", short: "Contas", icon: "users" },
 ];
 
 function useIsActive() {
@@ -47,7 +48,7 @@ export function AdminBottomNav() {
       aria-label="Administração"
       className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-white pb-[env(safe-area-inset-bottom)] lg:hidden"
     >
-      <ul className="grid grid-cols-4">
+      <ul className="grid grid-cols-5">
         {items.map((item) => (
           <li key={item.href}>
             <Link

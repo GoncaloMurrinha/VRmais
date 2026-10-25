@@ -1,13 +1,10 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { cookies } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Icon } from "@/components/icons";
 import { LoginForm } from "@/components/login-form";
 import { getAdminSession } from "@/lib/auth";
-
-const SESSION_COOKIE = "centro_estudos_admin";
 
 export const metadata: Metadata = { title: "Entrar" };
 
@@ -16,11 +13,6 @@ export default async function AdminLoginPage() {
 
   if (session) {
     redirect("/admin");
-  }
-
-  const cookieStore = await cookies();
-  if (cookieStore.get(SESSION_COOKIE)) {
-    cookieStore.delete(SESSION_COOKIE);
   }
 
   return (
