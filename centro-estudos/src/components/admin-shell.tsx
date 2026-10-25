@@ -1,12 +1,8 @@
+import Image from "next/image";
 import Link from "next/link";
+import { AdminBottomNav, AdminSidebarNav } from "@/components/admin-nav";
+import { Icon } from "@/components/icons";
 import { logoutAdmin } from "@/lib/admin-actions";
-
-const links = [
-  { href: "/admin", label: "Dashboard" },
-  { href: "/admin/sessoes", label: "Sessões" },
-  { href: "/admin/quem-somos", label: "Quem Somos" },
-  { href: "/admin/fichas", label: "Fichas" },
-];
 
 export function AdminShell({
   children,
@@ -16,60 +12,64 @@ export function AdminShell({
   adminName: string;
 }) {
   return (
-    <div className="min-h-screen bg-slate-100">
-      <aside className="fixed inset-y-0 left-0 hidden w-72 border-r border-slate-200 bg-[linear-gradient(180deg,#0f172a,#103e49)] px-6 py-8 text-white lg:block">
-        <p className="brand-accent-orange text-xs uppercase tracking-[0.3em]">Admin</p>
-        <h1 className="mt-2 text-2xl font-semibold">VR+ Centro de Estudos</h1>
-        <nav className="mt-10 space-y-2">
-          {links.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="block rounded-2xl px-4 py-3 text-slate-200 transition hover:bg-white/10 hover:text-white"
-            >
-              {link.label}
-            </Link>
-          ))}
-        </nav>
-        <form action={logoutAdmin} className="mt-10">
-          <button
-            type="submit"
-            className="rounded-full border border-white/20 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
+    <div className="min-h-screen bg-bg">
+      <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col bg-teal-deep px-4 py-6 text-white lg:flex">
+        <Link href="/admin" className="flex items-center gap-3 px-2">
+          <Image src="/logo-vrmais.jpeg" alt="" width={44} height={44} className="h-11 w-11 rounded-xl object-cover" />
+          <span className="leading-tight">
+            <span className="font-display block text-lg font-extrabold">VR+</span>
+            <span className="block text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-white/70">
+              Área do professor
+            </span>
+          </span>
+        </Link>
+
+        <AdminSidebarNav />
+
+        <div className="mt-auto space-y-3">
+          <Link
+            href="/"
+            target="_blank"
+            className="flex min-h-11 items-center gap-3 rounded-xl px-4 text-sm font-semibold text-white/80 hover:bg-white/10 hover:text-white"
           >
-            Terminar sessão
-          </button>
-        </form>
-      </aside>
-      <div className="lg:pl-72">
-        <header className="border-b border-slate-200 bg-white px-6 py-5">
-          <div className="mx-auto flex max-w-6xl flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className="text-sm text-slate-500">Área de gestão</p>
-              <p className="text-lg font-semibold text-slate-950">{adminName}</p>
-            </div>
-            <nav className="flex flex-wrap gap-2 lg:hidden">
-              {links.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-700"
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </nav>
-            <form action={logoutAdmin} className="lg:hidden">
-              <button
-                type="submit"
-                className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-800"
-              >
-                Sair
+            <Icon name="external" className="h-5 w-5" />
+            Ver o site
+          </Link>
+          <div className="rounded-xl bg-white/10 p-4">
+            <p className="text-xs text-white/60">Sessão iniciada como</p>
+            <p className="mt-0.5 truncate text-sm font-semibold">{adminName}</p>
+            <form action={logoutAdmin} className="mt-3">
+              <button type="submit" className="btn btn-outline-light w-full">
+                <Icon name="logout" className="h-4 w-4" />
+                Terminar sessão
               </button>
             </form>
           </div>
+        </div>
+      </aside>
+
+      <div className="lg:pl-64">
+        <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-line bg-white px-4 lg:hidden">
+          <Link href="/admin" className="flex items-center gap-2.5">
+            <Image src="/logo-vrmais.jpeg" alt="" width={36} height={36} className="h-9 w-9 rounded-lg object-cover" />
+            <span className="font-display text-base font-extrabold text-teal-deep">Área do professor</span>
+          </Link>
+          <form action={logoutAdmin}>
+            <button
+              type="submit"
+              className="inline-flex h-11 items-center gap-2 rounded-xl px-3 text-sm font-semibold text-muted hover:bg-teal-soft hover:text-teal-deep"
+              aria-label="Terminar sessão"
+            >
+              <Icon name="logout" className="h-5 w-5" />
+              Sair
+            </button>
+          </form>
         </header>
-        <main className="mx-auto max-w-6xl px-4 py-6 md:px-6 md:py-8">{children}</main>
+
+        <main className="mx-auto w-full max-w-5xl px-4 py-6 pb-28 sm:px-6 lg:px-10 lg:py-10 lg:pb-12">{children}</main>
       </div>
+
+      <AdminBottomNav />
     </div>
   );
 }

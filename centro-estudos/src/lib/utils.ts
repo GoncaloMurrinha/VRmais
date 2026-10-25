@@ -21,6 +21,44 @@ export function formatDateTimeRange(startAt: Date, endAt: Date) {
   return `${formatDate(startAt)} ${formatTime(startAt)} → ${formatDate(endAt)} ${formatTime(endAt)}`;
 }
 
+export function formatDayNumber(date: Date) {
+  return new Intl.DateTimeFormat("pt-PT", { day: "2-digit" }).format(date);
+}
+
+export function formatMonthShort(date: Date) {
+  return new Intl.DateTimeFormat("pt-PT", { month: "short" }).format(date).replace(".", "");
+}
+
+export function formatMonthYear(date: Date) {
+  const label = new Intl.DateTimeFormat("pt-PT", { month: "long", year: "numeric" }).format(date);
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
+export function formatWeekday(date: Date) {
+  const label = new Intl.DateTimeFormat("pt-PT", { weekday: "long" }).format(date);
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
+export function formatSessionWhen(startAt: Date, endAt: Date) {
+  if (startAt.toDateString() === endAt.toDateString()) {
+    return `${formatWeekday(startAt)}, ${formatTime(startAt)} – ${formatTime(endAt)}`;
+  }
+
+  return formatDateTimeRange(startAt, endAt);
+}
+
+export function getFileKind(mimeType: string, fileName: string) {
+  const extension = fileName.split(".").pop()?.toLowerCase() ?? "";
+
+  if (mimeType === "application/pdf" || extension === "pdf") return "PDF";
+  if (extension === "doc" || extension === "docx") return "Word";
+  if (extension === "ppt" || extension === "pptx") return "PowerPoint";
+  if (extension === "xls" || extension === "xlsx") return "Excel";
+  if (mimeType.startsWith("image/")) return "Imagem";
+
+  return extension ? extension.toUpperCase() : "Ficheiro";
+}
+
 export function formatFileSize(sizeBytes: number) {
   if (sizeBytes < 1024) {
     return `${sizeBytes} B`;

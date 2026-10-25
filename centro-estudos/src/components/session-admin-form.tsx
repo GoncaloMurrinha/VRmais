@@ -1,119 +1,124 @@
 import type { Session } from "@prisma/client";
+import { Icon } from "@/components/icons";
 import { toDateTimeLocalValue } from "@/lib/utils";
 
 export function SessionAdminForm({ session }: { session?: Session }) {
+  const key = session?.id ?? "new";
+
   return (
-    <form
-      action="/admin/sessoes/actions"
-      method="post"
-      className="content-surface grid gap-4 p-5 md:grid-cols-2 md:p-6"
-    >
+    <form action="/admin/sessoes/actions" method="post" className="grid gap-4 sm:grid-cols-2">
       <input type="hidden" name="id" value={session?.id ?? ""} />
-      <div className="md:col-span-2">
-        <label htmlFor={`title-${session?.id ?? "new"}`} className="mb-2 block text-sm font-medium text-slate-700">
+      <input type="hidden" name="capacity" value={session?.capacity ?? 10} />
+
+      <div className="sm:col-span-2">
+        <label htmlFor={`title-${key}`} className="label">
           Título
         </label>
         <input
-          id={`title-${session?.id ?? "new"}`}
+          id={`title-${key}`}
           name="title"
           defaultValue={session?.title}
           required
-          className="brand-input w-full rounded-2xl px-4 py-3"
+          minLength={3}
+          placeholder="Ex.: Apoio ao estudo de Matemática"
+          className="field"
         />
       </div>
-      <div className="md:col-span-2">
-        <label
-          htmlFor={`description-${session?.id ?? "new"}`}
-          className="mb-2 block text-sm font-medium text-slate-700"
-        >
+      <div className="sm:col-span-2">
+        <label htmlFor={`description-${key}`} className="label">
           Descrição
         </label>
         <textarea
-          id={`description-${session?.id ?? "new"}`}
+          id={`description-${key}`}
           name="description"
           defaultValue={session?.description}
           required
-          rows={4}
-          className="brand-input w-full rounded-2xl px-4 py-3"
+          minLength={10}
+          rows={3}
+          placeholder="O que vai acontecer nesta sessão? (mínimo 10 caracteres)"
+          className="field"
         />
       </div>
       <div>
-        <label htmlFor={`category-${session?.id ?? "new"}`} className="mb-2 block text-sm font-medium text-slate-700">
-          Categoria
+        <label htmlFor={`category-${key}`} className="label">
+          Disciplina ou tipo
         </label>
         <input
-          id={`category-${session?.id ?? "new"}`}
+          id={`category-${key}`}
           name="category"
           defaultValue={session?.category}
           required
-          className="brand-input w-full rounded-2xl px-4 py-3"
+          minLength={2}
+          placeholder="Ex.: Matemática"
+          className="field"
         />
       </div>
       <div>
-        <label htmlFor={`tutor-${session?.id ?? "new"}`} className="mb-2 block text-sm font-medium text-slate-700">
-          Responsável
+        <label htmlFor={`tutor-${key}`} className="label">
+          Professor responsável
         </label>
         <input
-          id={`tutor-${session?.id ?? "new"}`}
+          id={`tutor-${key}`}
           name="tutorName"
           defaultValue={session?.tutorName}
           required
-          className="brand-input w-full rounded-2xl px-4 py-3"
+          minLength={3}
+          className="field"
         />
       </div>
-      <div>
-        <label htmlFor={`location-${session?.id ?? "new"}`} className="mb-2 block text-sm font-medium text-slate-700">
-          Local
+      <div className="sm:col-span-2">
+        <label htmlFor={`location-${key}`} className="label">
+          Sala ou local
         </label>
         <input
-          id={`location-${session?.id ?? "new"}`}
+          id={`location-${key}`}
           name="location"
           defaultValue={session?.location}
           required
-          className="brand-input w-full rounded-2xl px-4 py-3"
+          minLength={2}
+          placeholder="Ex.: Sala 2"
+          className="field"
         />
       </div>
-      <input type="hidden" name="capacity" value={session?.capacity ?? 10} />
       <div>
-        <label htmlFor={`start-${session?.id ?? "new"}`} className="mb-2 block text-sm font-medium text-slate-700">
+        <label htmlFor={`start-${key}`} className="label">
           Início
         </label>
         <input
-          id={`start-${session?.id ?? "new"}`}
+          id={`start-${key}`}
           name="startAt"
           type="datetime-local"
           defaultValue={session ? toDateTimeLocalValue(session.startAt) : ""}
           required
-          className="brand-input w-full rounded-2xl px-4 py-3"
+          className="field"
         />
       </div>
       <div>
-        <label htmlFor={`end-${session?.id ?? "new"}`} className="mb-2 block text-sm font-medium text-slate-700">
+        <label htmlFor={`end-${key}`} className="label">
           Fim
         </label>
         <input
-          id={`end-${session?.id ?? "new"}`}
+          id={`end-${key}`}
           name="endAt"
           type="datetime-local"
           defaultValue={session ? toDateTimeLocalValue(session.endAt) : ""}
           required
-          className="brand-input w-full rounded-2xl px-4 py-3"
+          className="field"
         />
+        <p className="hint">Tem de ser depois do início.</p>
       </div>
-      <label className="flex items-center gap-3 text-sm font-medium text-slate-700">
+      <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border border-line bg-bg px-4 py-3 text-sm font-semibold text-ink sm:col-span-2">
         <input
           name="isPublished"
           type="checkbox"
           defaultChecked={session ? session.isPublished : true}
-          className="h-4 w-4 rounded border-slate-300"
+          className="h-5 w-5 accent-[var(--teal)]"
         />
-        Publicada no site
+        Visível no calendário do site
       </label>
-      <div className="flex items-center md:justify-end">
-        <button
-          type="submit"
-          className="brand-button-secondary w-full px-5 py-3 text-sm font-semibold md:w-auto"
-        >
+      <div className="sm:col-span-2">
+        <button type="submit" className="btn btn-secondary min-h-12 w-full sm:w-auto">
+          <Icon name={session ? "check" : "plus"} className="h-5 w-5" />
           {session ? "Guardar alterações" : "Criar sessão"}
         </button>
       </div>

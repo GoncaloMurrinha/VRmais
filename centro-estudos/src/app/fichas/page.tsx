@@ -1,43 +1,37 @@
 export const dynamic = "force-dynamic";
 
+import type { Metadata } from "next";
 import { DatabaseWarning } from "@/components/database-warning";
 import { PublicPageHero } from "@/components/public-page-hero";
-import { ResourceCard } from "@/components/resource-card";
+import { ResourcesBrowser } from "@/components/resources-browser";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { getPublishedResources } from "@/lib/data";
+
+export const metadata: Metadata = { title: "Fichas de apoio" };
 
 export default async function ResourcesPage() {
   const { data: resources, database } = await getPublishedResources();
 
   return (
-    <div className="page-shell">
+    <>
       <SiteHeader />
       <main>
         <PublicPageHero
           eyebrow="Fichas"
-          title="Biblioteca de recursos para apoio ao estudo."
-          description="Os materiais carregados no backoffice ficam disponíveis aqui, com descrição, categoria e descarregamento direto."
-          accentClassName="brand-accent-orange"
+          title="Fichas e materiais de apoio ao estudo"
+          description="Procura por tema ou disciplina e descarrega o que precisas para estudar."
         />
-        <section className="mx-auto w-full max-w-6xl px-6 pb-16 pt-8 md:pt-10">
+        <section className="container-page py-10 md:py-14">
           {!database.available ? (
             <div className="mb-8">
               <DatabaseWarning message={database.message} />
             </div>
           ) : null}
-          <div className="grid gap-6 lg:grid-cols-3">
-            {resources.length > 0 ? (
-              resources.map((resource) => <ResourceCard key={resource.id} resource={resource} />)
-            ) : (
-              <div className="content-surface p-8 text-slate-600 lg:col-span-3">
-                Não há fichas publicadas neste momento.
-              </div>
-            )}
-          </div>
+          <ResourcesBrowser resources={resources} />
         </section>
       </main>
       <SiteFooter />
-    </div>
+    </>
   );
 }
