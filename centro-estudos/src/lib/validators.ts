@@ -6,6 +6,23 @@ export const loginSchema = z.object({
   password: z.string().min(8, "A palavra-passe deve ter pelo menos 8 caracteres."),
 });
 
+// Mínimo de 10 para novas contas (o login aceita 8 para não bloquear contas antigas). Máximo 72: limite do bcrypt.
+const newPasswordSchema = z
+  .string()
+  .min(10, "A palavra-passe deve ter pelo menos 10 caracteres.")
+  .max(72, "A palavra-passe pode ter no máximo 72 caracteres.");
+
+export const adminCreateSchema = z.object({
+  name: z.string().trim().min(2, "Escreve o nome do professor.").max(80, "O nome é demasiado longo."),
+  email: z.email("Introduz um email válido."),
+  password: newPasswordSchema,
+});
+
+export const adminPasswordSchema = z.object({
+  id: z.string().min(1),
+  password: newPasswordSchema,
+});
+
 export const sessionSchema = z
   .object({
     title: z.string().min(3),
